@@ -14,3 +14,10 @@ python -m venv venv
 pip install -r requirements.txt
 pytest -q
 ```
+
+If you want to run tests across the repo, install the dev requirements from project root:
+
+```powershell
+cd ..\
+pip install -r dev-requirements.txt
+```
