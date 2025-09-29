@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "lite-server --baseDir=website"
+    "start": "lite-server --baseDir=website",
+    "start:render": "npx serve website -l $PORT"
   },
   "devDependencies": {
     "lite-server": "^2.6.1"
