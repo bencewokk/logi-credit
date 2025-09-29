@@ -4,6 +4,9 @@
   --muted:#6b7280;
   --accent:#2563eb;
 }
+/* dev-only banner */
+.dev-banner{background:#fff4e6;border-bottom:1px solid rgba(0,0,0,0.04);color:#92400e}
+.dev-banner a{color:var(--accent);text-decoration:underline}
 *{box-sizing:border-box}
 body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#111;margin:0}
 .container{max-width:900px;margin:0 auto;padding:24px}
