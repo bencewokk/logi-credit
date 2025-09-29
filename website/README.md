@@ -29,3 +29,10 @@ npm start
 ```
 
 The server will serve the `website/` folder and usually opens a browser at http://localhost:3000.
+
+Home route
+
+
+- The canonical post-auth homepage is `website/home/index.html` (route: `/home/`). This file is a skeleton dashboard where authenticated users would see their analytics and transactions. It contains placeholders for charts, KPIs, and a transactions table — replace these with real data once the backend is ready.
+
+- `website/index.html` remains a dev-only starter page (see banner). Navigation now points to `/home` as the primary home route.
