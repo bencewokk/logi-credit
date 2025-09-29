@@ -40,6 +40,7 @@ python -m david.main  # prints example auth_message()
 
 Interactive REPL demo:
 
+<<<<<<< HEAD
 ```python
 from david import AuthService, InMemoryUserRepository
 repo = InMemoryUserRepository()
@@ -107,3 +108,13 @@ Legacy production FastAPI description was removed for clarity; this repo's `davi
 ---
 Happy hacking!  
 – The david module
+=======
+## Getting Started
+1. Implement user login and registration logic.
+2. Add any helper modules for password hashing, session management, etc.
+
+## Example
+- `auth.py` - Main authentication logic
+- `models.py` - User models
+
+>>>>>>> cd391466fb21d6ec9991cff37c75564b9ad795e1

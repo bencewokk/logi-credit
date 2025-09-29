@@ -4,8 +4,8 @@ This folder contains a very small static starter website for the Logi Credit pro
 
 How to use
 
-- Open `website/index.html` in your browser to view the site.
-- Each team member has a personal page under `website/people/` to add notes and prototype UI.
+- Note: `website/index.html` is a dev-only, team starter page and may be replaced — treat it as scaffolding for development rather than a production homepage.
+- Each team member has a personal page under `website/people/` to add notes and prototype UI. The `people/` pages are the canonical area for individual work and small prototypes.
 
 Structure
 
