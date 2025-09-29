@@ -1,0 +1,11 @@
+{
+  "name": "logi-credit-website-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "lite-server --baseDir=website"
+  },
+  "devDependencies": {
+    "lite-server": "^2.6.1"
+  }
+}

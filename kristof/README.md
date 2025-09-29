@@ -1,4 +1,23 @@
-# kristof - Tranzakciók
+# kristof - Tranzakciók (Python)
+
+This folder contains a Python skeleton for transaction processing prototypes.
+
+## Python setup
+
+PowerShell example:
+
+```powershell
+cd kristof
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pytest -q
+```
+
+## Workflow
+
+- Branch naming: `kristof/<desc>`
+- Keep changes scoped to `kristof/` unless coordinating.
 
 ## Overview
 Responsible for transaction logic and handling.

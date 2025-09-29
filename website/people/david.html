@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>david - Logi Credit</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>david</h1>
+    <p>Role: Auth</p>
+
+    <section>
+      <h2>Mock login</h2>
+      <form id="login">
+        <label>Email<br><input type="email" name="email" required></label><br>
+        <label>Password<br><input type="password" name="password" required></label><br>
+        <button type="submit">Log in (mock)</button>
+      </form>
+      <div id="login-result"></div>
+    </section>
+
+    <section>
+      <h2>Notes</h2>
+      <p>Add auth flow ideas and links to implementation files here.</p>
+    </section>
+
+    <p><a href="../index.html">Back to home</a></p>
+  </div>
+  <script src="../app.js"></script>
+  <script>
+    document.getElementById('login')?.addEventListener('submit', e=>{
+      e.preventDefault()
+      document.getElementById('login-result').textContent='This is a mock login — implement real auth in backend.'
+    })
+  </script>
+</body>
+</html>

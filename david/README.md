@@ -3,6 +3,33 @@
 ## Overview
 Responsible for authentication logic (login, registration, etc.).
 
+## Python setup
+
+Use a local virtual environment in this folder to avoid conflicts with others.
+
+PowerShell example:
+
+```powershell
+cd david
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pytest -q
+```
+
+## Workflow rules
+
+- Work only inside `david/` unless agreed in a PR.
+- Branch naming: `david/<short-description>` (e.g. `david/login-form`).
+
+## Running
+
+Run the small example package:
+
+```powershell
+python -m david.main
+```
+
 ## Folder Structure
 - Place all authentication-related Python files here.
 
