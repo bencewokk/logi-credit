@@ -6,9 +6,8 @@ Ez a mappa tartalmazza a Logi Credit projekt adminisztrátori weboldalát autent
 
 A weboldal most már tartalmaz egy bejelentkezési rendszert az admin hozzáféréshez.
 
-### Admin belépési adatok
-- **Felhasználónév:** `admin`
-- **Jelszó:** `admin123`
+### Belépési adatok
+Az admin belépési adatok biztonságosan vannak tárolva. A fejlesztők számára a credentials a kódban találhatók.
 
 ## Struktúra
 

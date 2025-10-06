@@ -93,6 +93,6 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Logi Credit szerver fut a http://localhost:${PORT} címen`);
-  console.log(`📋 Admin belépés: admin/admin123`);
   console.log(`🏠 Home page: http://localhost:${PORT}/home/`);
+  console.log(`🔐 Admin bejelentkezés szükséges`);
 });
