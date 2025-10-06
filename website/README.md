@@ -1,34 +1,51 @@
-# Website (starter site)
+# Website (Logi Credit Admin Portal)
 
-This folder contains a very small static starter website for the Logi Credit project.
+Ez a mappa tartalmazza a Logi Credit projekt adminisztrátori weboldalát autentikációval.
 
-How to use
+## Használat
 
-- Note: `website/index.html` is a dev-only, team starter page and may be replaced — treat it as scaffolding for development rather than a production homepage.
-- Each team member has a personal page under `website/people/` to add notes and prototype UI. The `people/` pages are the canonical area for individual work and small prototypes.
+A weboldal most már tartalmaz egy bejelentkezési rendszert az admin hozzáféréshez.
 
-Structure
+### Admin belépési adatok
+- **Felhasználónév:** `admin`
+- **Jelszó:** `admin123`
 
-- `index.html` – homepage and quick links
-- `styles.css` – shared styles
-- `app.js` – tiny JS helpers
-- `people/` – per-person starter pages
+## Struktúra
 
-Additions
+- `login.html` – bejelentkezési oldal
+- `index.html` – átirányít a login oldalra, ha nincs bejelentkezve
+- `home/index.html` – admin dashboard (csak bejelentkezés után)
+- `styles.css` – közös stílusok
+- `app.js` – autentikációs logika és JS segédfunkciók
+- `server.js` – Express szerver autentikációs API-val
+- `people/` – személyi oldalak (david, kristof, pali, zsombi)
 
-If you'd like, you can run a tiny local server with npm and `lite-server` to get live reload while you edit.
+## Szerver indítása
 
-Quick run (Windows PowerShell):
+Windows PowerShell-ben:
 
 ```powershell
-# install dev dependencies once
+# függőségek telepítése (első alkalommal)
 npm install
 
-# start the dev server from project root
+# szerver indítása
 npm start
 ```
 
-The server will serve the `website/` folder and usually opens a browser at http://localhost:3000.
+A szerver elindul a http://localhost:3000 címen.
+
+## Funkciók
+
+### Autentikáció
+- Biztonságos bejelentkezési oldal
+- LocalStorage alapú session kezelés
+- Automatikus átirányítás védett oldalakra
+- Kijelentkezés funkció minden oldalon
+
+### API végpontok
+- `POST /api/login` - bejelentkezés
+- `POST /api/logout` - kijelentkezés  
+- `GET /api/user` - felhasználói információk (védett)
 
 Home route
 

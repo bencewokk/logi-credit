@@ -3,30 +3,71 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>david - Logi Credit</title>
+  <title>david - Logi Credit Auth</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
   <div class="container">
-    <h1>david</h1>
-    <p>Role: Auth</p>
+    <h1>David - Autentikáció</h1>
+    <p>Role: Authentication & Authorization</p>
 
     <section>
-      <h2>Mock login</h2>
-      <form id="login">
-        <label>Email<br><input type="email" name="email" required></label><br>
-        <label>Password<br><input type="password" name="password" required></label><br>
-        <button type="submit">Log in (mock)</button>
-      </form>
-      <div id="login-result"></div>
+      <h2>✅ Implementált autentikációs rendszer</h2>
+      <div class="card" style="background: #f0fdf4; border: 1px solid #16a34a; border-radius: 6px; padding: 16px;">
+        <h3 style="color: #16a34a; margin-top: 0;">Működő funkciók:</h3>
+        <ul>
+          <li>🔐 Admin bejelentkezés (admin/admin123)</li>
+          <li>🏠 Védett dashboard oldal (/home/)</li>
+          <li>🔄 Automatikus átirányítás login oldalra</li>
+          <li>🚪 Kijelentkezés funkció</li>
+          <li>💾 LocalStorage alapú session kezelés</li>
+          <li>🔒 API végpontok védelme</li>
+        </ul>
+      </div>
     </section>
 
     <section>
-      <h2>Notes</h2>
-      <p>Add auth flow ideas and links to implementation files here.</p>
+      <h2>API Végpontok</h2>
+      <div class="card">
+        <h4>POST /api/login</h4>
+        <pre><code>{
+  "username": "admin",
+  "password": "admin123"
+}</code></pre>
+        
+        <h4>GET /api/user (védett)</h4>
+        <p>Authorization: Bearer {token}</p>
+        
+        <h4>POST /api/logout</h4>
+        <p>Kijelentkezés</p>
+      </div>
     </section>
 
-    <p><a href="../index.html">Back to home</a></p>
+    <section>
+      <h2>Biztonsági megfontolások</h2>
+      <ul>
+        <li>Jelszavak hash-elése (PBKDF2-HMAC SHA256 - auth.py-ban)</li>
+        <li>Rate limiting bejelentkezési kísérleteknél</li>
+        <li>HTTPS használata production környezetben</li>
+        <li>Secure cookie flags beállítása</li>
+        <li>CSRF védelem implementálása</li>
+        <li>Token lejárati idő beállítása</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Következő lépések</h2>
+      <ol>
+        <li>Adatbázis integráció a memóriában tárolt adatok helyett</li>
+        <li>Többfaktoros autentikáció (MFA) implementálása</li>
+        <li>Role-based access control (RBAC) finomhangolása</li>
+        <li>Audit log kibővítése</li>
+        <li>JWT token használata refresh tokenekkel</li>
+        <li>Környezeti változók használata credentials-hez</li>
+      </ol>
+    </section>
+
+    <p><a href="../home/">Vissza a dashboard-ra</a></p>
   </div>
   <script src="../app.js"></script>
   <script>

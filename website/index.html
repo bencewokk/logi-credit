@@ -7,6 +7,12 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <script>
+    // Redirect to login page if not authenticated
+    if (localStorage.getItem('authToken') !== 'authenticated') {
+      window.location.href = 'login.html';
+    }
+  </script>
   <div class="dev-banner">
     <div class="container">
       <strong>DEV ONLY:</strong> This `index.html` is a development starter page. Use the pages under <a href="people/">`website/people/`</a> for personal work. See <a href="README.md">website/README.md</a> for details.

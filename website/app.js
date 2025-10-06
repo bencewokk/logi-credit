@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded',()=>{
   console.log('Logi Credit starter site loaded')
+  
+  // Authentication check
+  checkAuthentication();
+  
   // Simple helper: highlight nav link for current page
   const links = document.querySelectorAll('header nav a')
   links.forEach(a=>{
@@ -7,4 +11,102 @@ document.addEventListener('DOMContentLoaded',()=>{
       a.style.textDecoration='underline'
     }
   })
+  
+  // Add logout functionality if user is authenticated
+  addLogoutFunctionality();
+  
+  // Update user name if displayed
+  updateUserName();
 })
+
+/**
+ * Check if user is authenticated and redirect to login if not
+ */
+function checkAuthentication() {
+  const currentPage = window.location.pathname;
+  const isLoginPage = currentPage.includes('login.html');
+  const authToken = localStorage.getItem('authToken');
+  
+  // If not on login page and not authenticated, redirect to login
+  if (!isLoginPage && authToken !== 'authenticated') {
+    window.location.href = 'login.html';
+    return false;
+  }
+  
+  // If on login page and authenticated, redirect to home
+  if (isLoginPage && authToken === 'authenticated') {
+    window.location.href = 'home/';
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Add logout button and functionality to navigation
+ */
+function addLogoutFunctionality() {
+  const authToken = localStorage.getItem('authToken');
+  if (authToken === 'authenticated') {
+    const nav = document.querySelector('header nav');
+    if (nav && !document.getElementById('logoutButton')) {
+      const logoutButton = document.createElement('a');
+      logoutButton.href = '#';
+      logoutButton.textContent = 'Kijelentkezés';
+      logoutButton.id = 'logoutButton';
+      logoutButton.style.color = '#dc2626';
+      logoutButton.style.marginLeft = '16px';
+      
+      logoutButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        logout();
+      });
+      
+      nav.appendChild(logoutButton);
+    }
+  }
+}
+
+/**
+ * Update user name display
+ */
+function updateUserName() {
+  const userName = localStorage.getItem('userName');
+  const userNameElement = document.getElementById('user-name');
+  
+  if (userNameElement && userName) {
+    userNameElement.textContent = userName;
+  }
+}
+
+/**
+ * Logout function
+ */
+function logout() {
+  // Clear authentication data
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('loginTime');
+  
+  // Redirect to login page - use relative path
+  const currentPath = window.location.pathname;
+  if (currentPath.includes('/home/')) {
+    window.location.href = '../login.html';
+  } else {
+    window.location.href = 'login.html';
+  }
+}
+
+/**
+ * Get authentication status
+ */
+function isAuthenticated() {
+  return localStorage.getItem('authToken') === 'authenticated';
+}
+
+/**
+ * Get current user name
+ */
+function getCurrentUser() {
+  return localStorage.getItem('userName');
+}

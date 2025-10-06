@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login - Logi Credit</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 32px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-group label {
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .form-group input {
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .login-button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .login-button:hover {
+      background: #2563eb;
+    }
+    
+    .login-button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    
+    .error-message {
+      color: #dc2626;
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+    }
+    
+    .success-message {
+      color: #16a34a;
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div style="text-align: center; margin-bottom: 32px;">
+      <h1>Logi Credit</h1>
+      <p class="muted">Belépés az adminisztrátori felületre</p>
+    </div>
+    
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label for="username">Felhasználónév:</label>
+        <input type="text" id="username" name="username" required autocomplete="username">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Jelszó:</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      
+      <button type="submit" class="login-button" id="loginButton">
+        Bejelentkezés
+      </button>
+      
+      <div class="error-message" id="errorMessage"></div>
+      <div class="success-message" id="successMessage"></div>
+    </form>
+    
+    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+      <p class="muted" style="font-size: 14px;">
+        <strong>Demo admin belépés:</strong><br>
+        Felhasználónév: <code>admin</code><br>
+        Jelszó: <code>admin123</code>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Admin credentials
+    const ADMIN_CREDENTIALS = {
+      username: 'admin',
+      password: 'admin123'
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorMessage = document.getElementById('errorMessage');
+      const successMessage = document.getElementById('successMessage');
+      const loginButton = document.getElementById('loginButton');
+      
+      // Hide previous messages
+      errorMessage.style.display = 'none';
+      successMessage.style.display = 'none';
+      
+      // Disable button during login
+      loginButton.disabled = true;
+      loginButton.textContent = 'Bejelentkezés...';
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Set authentication token
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userName', data.user.username);
+          localStorage.setItem('loginTime', new Date().toISOString());
+          
+          successMessage.textContent = 'Sikeres bejelentkezés! Átirányítás...';
+          successMessage.style.display = 'block';
+          
+          // Redirect to home page
+          setTimeout(() => {
+            window.location.href = 'home/';
+          }, 1000);
+        } else {
+          throw new Error(data.message || 'Bejelentkezési hiba');
+        }
+      } catch (error) {
+        errorMessage.textContent = error.message || 'Hálózati hiba történt!';
+        errorMessage.style.display = 'block';
+        
+        loginButton.disabled = false;
+        loginButton.textContent = 'Bejelentkezés';
+      }
+    });
+
+    // Check if already logged in
+    if (localStorage.getItem('authToken') === 'authenticated') {
+      window.location.href = 'home/';
+    }
+  </script>
+</body>
+</html>
