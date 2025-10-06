@@ -28,18 +28,20 @@ npm install
 npm start
 ```
 
-Render.com (static site) — recommended
+Render.com (static site)
 
 - Service type: Static Site
 - Build Command: npm install
 - Publish Directory: website
+- Optional: use `npm run start:static` locally if you want to mirror the static-only serving behaviour (no API routes).
 
-Render.com (Web Service) — if you need a Node process
+Render.com (Web Service) — recommended for API access
 
 - Build Command: npm install
 - Start Command: npm run start:render
+- This command launches the Express server (`website/server.js`), so `/api/login`, `/api/logout`, and `/api/user` are available in production.
 
 Notes
 
-- The repo includes a `start:render` npm script which runs `npx serve website -l $PORT` so Render will bind to the correct port.
+- The `start:static` npm script runs `npx serve website -l $PORT` if you only need static hosting without the API.
 - Alternatively you can add a Dockerfile if you want full control.

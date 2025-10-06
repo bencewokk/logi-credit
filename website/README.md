@@ -27,11 +27,17 @@ Windows PowerShell-ben:
 # függőségek telepítése (első alkalommal)
 npm install
 
-# szerver indítása
+# szerver indítása (Express + API)
 npm start
+
+# vagy Render környezetben ugyanilyen szervert indíthatsz
+npm run start:render
+
+# ha csak statikus kiszolgálás kell API nélkül
+npm run start:static
 ```
 
-A szerver elindul a http://localhost:3000 címen.
+A szerver elindul a http://localhost:3000 címen (API-val együtt).
 
 ## Funkciók
 

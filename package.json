@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node website/server.js",
-    "dev": "lite-server --baseDir=website",
-    "start:render": "npx serve website -l $PORT"
+  "start": "node website/server.js",
+  "dev": "lite-server --baseDir=website",
+  "start:render": "node website/server.js",
+  "start:static": "npx serve website -l $PORT"
   },
   "dependencies": {
     "express": "^4.18.2"

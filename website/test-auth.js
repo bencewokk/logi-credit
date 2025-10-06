@@ -8,11 +8,14 @@ const testCredentials = {
   password: 'admin123'
 };
 
-async function testLogin() {
+const DEFAULT_PORT = process.env.TEST_PORT || 3000;
+const DEFAULT_BASE_URL = process.env.BASE_URL || `http://localhost:${DEFAULT_PORT}`;
+
+async function testLogin(baseUrl = DEFAULT_BASE_URL) {
   console.log('🧪 Testing admin login...');
   
   try {
-    const response = await fetch('http://localhost:3000/api/login', {
+    const response = await fetch(`${baseUrl}/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -28,7 +31,7 @@ async function testLogin() {
       console.log('User:', data.user);
       
       // Test authenticated endpoint
-      return testAuthenticatedEndpoint(data.token);
+  return testAuthenticatedEndpoint(data.token, baseUrl);
     } else {
       console.log('❌ Login failed:', data.message);
       return false;
@@ -39,11 +42,11 @@ async function testLogin() {
   }
 }
 
-async function testAuthenticatedEndpoint(token) {
+async function testAuthenticatedEndpoint(token, baseUrl = DEFAULT_BASE_URL) {
   console.log('🧪 Testing authenticated endpoint...');
   
   try {
-    const response = await fetch('http://localhost:3000/api/user', {
+    const response = await fetch(`${baseUrl}/api/user`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -65,11 +68,11 @@ async function testAuthenticatedEndpoint(token) {
   }
 }
 
-async function testInvalidCredentials() {
+async function testInvalidCredentials(baseUrl = DEFAULT_BASE_URL) {
   console.log('🧪 Testing invalid credentials...');
   
   try {
-    const response = await fetch('http://localhost:3000/api/login', {
+    const response = await fetch(`${baseUrl}/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -96,29 +99,47 @@ async function testInvalidCredentials() {
 }
 
 // Run all tests
-async function runTests() {
+async function runTests(baseUrl = DEFAULT_BASE_URL) {
   console.log('🚀 Starting authentication tests...\n');
   
-  const test1 = await testLogin();
+  const test1 = await testLogin(baseUrl);
   console.log('');
   
-  const test2 = await testInvalidCredentials();
+  const test2 = await testInvalidCredentials(baseUrl);
   console.log('');
   
   if (test1 && test2) {
     console.log('🎉 All tests passed! Authentication system is working correctly.');
+    return true;
   } else {
     console.log('⚠️ Some tests failed. Please check the implementation.');
+    return false;
   }
 }
 
 // Auto-run if this is loaded as a script
 if (typeof window !== 'undefined') {
   // Browser environment
-  document.addEventListener('DOMContentLoaded', runTests);
+  document.addEventListener('DOMContentLoaded', () => runTests(window.location.origin));
 } else {
   // Node.js environment
-  runTests();
+  const app = require('./server');
+  const port = DEFAULT_PORT;
+  const baseUrl = DEFAULT_BASE_URL;
+
+  const server = app.listen(port, async () => {
+    try {
+      const success = await runTests(baseUrl);
+      if (!success) {
+        process.exitCode = 1;
+      }
+    } catch (error) {
+      console.error('❌ Test execution failed:', error);
+      process.exitCode = 1;
+    } finally {
+      server.close();
+    }
+  });
 }
 
-module.exports = { testLogin, testInvalidCredentials, testAuthenticatedEndpoint };
+module.exports = { testLogin, testInvalidCredentials, testAuthenticatedEndpoint, runTests };

@@ -91,8 +91,12 @@ app.get('*', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Logi Credit szerver fut a http://localhost:${PORT} címen`);
-  console.log(`🏠 Home page: http://localhost:${PORT}/home/`);
-  console.log(`🔐 Admin bejelentkezés szükséges`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Logi Credit szerver fut a http://localhost:${PORT} címen`);
+    console.log(`🏠 Home page: http://localhost:${PORT}/home/`);
+    console.log(`🔐 Admin bejelentkezés szükséges`);
+  });
+}
+
+module.exports = app;
