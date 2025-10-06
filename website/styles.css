@@ -28,3 +28,15 @@ footer{padding:12px 0;color:var(--muted);text-align:center}
 .hero-wave{display:block;width:100%;height:40px;margin-top:8px}
 
 .card{background:var(--card);padding:12px;border-radius:8px}
+.analytics-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:12px 0 16px}
+.analytics-summary div{background:rgba(37,99,235,0.08);border-radius:8px;padding:12px 14px}
+.summary-label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:4px}
+.summary-value{font-size:18px;font-weight:600;color:#1f2937}
+.chart-container{position:relative;height:220px}
+.data-table{width:100%;border-collapse:collapse;margin-top:12px}
+.data-table th,.data-table td{text-align:left;padding:10px 12px;border-bottom:1px solid #e5e7eb;font-size:14px}
+.data-table tbody tr:hover{background:#f9fafb}
+.status-pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;text-transform:capitalize}
+.status-approved{background:rgba(34,197,94,0.12);color:#047857}
+.status-pending{background:rgba(250,204,21,0.16);color:#b45309}
+.status-rejected{background:rgba(248,113,113,0.16);color:#b91c1c}
