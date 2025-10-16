@@ -27,15 +27,22 @@ function checkAuthentication() {
   const isLoginPage = currentPage.includes('login.html');
   const authToken = localStorage.getItem('authToken');
   
+  // Check if token is valid (old format or new format with timestamp)
+  const isAuthenticated = authToken && (
+    authToken === 'authenticated' || 
+    authToken.startsWith('authenticated_') || 
+    authToken.startsWith('google_auth_')
+  );
+  
   // If not on login page and not authenticated, redirect to login
-  if (!isLoginPage && authToken !== 'authenticated') {
-    window.location.href = 'login.html';
+  if (!isLoginPage && !isAuthenticated) {
+    window.location.href = '/login.html';
     return false;
   }
   
   // If on login page and authenticated, redirect to home
-  if (isLoginPage && authToken === 'authenticated') {
-    window.location.href = 'home/';
+  if (isLoginPage && isAuthenticated) {
+    window.location.href = '/home/';
     return false;
   }
   
@@ -47,7 +54,13 @@ function checkAuthentication() {
  */
 function addLogoutFunctionality() {
   const authToken = localStorage.getItem('authToken');
-  if (authToken === 'authenticated') {
+  const isAuthenticated = authToken && (
+    authToken === 'authenticated' || 
+    authToken.startsWith('authenticated_') || 
+    authToken.startsWith('google_auth_')
+  );
+  
+  if (isAuthenticated) {
     const nav = document.querySelector('header nav');
     if (nav && !document.getElementById('logoutButton')) {
       const logoutButton = document.createElement('a');
@@ -83,18 +96,24 @@ function updateUserName() {
  * Logout function
  */
 function logout() {
+  // Call server logout endpoint
+  const authToken = localStorage.getItem('authToken');
+  if (authToken) {
+    fetch('/api/logout', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    }).catch(err => console.error('Logout error:', err));
+  }
+  
   // Clear authentication data
   localStorage.removeItem('authToken');
   localStorage.removeItem('userName');
   localStorage.removeItem('loginTime');
   
-  // Redirect to login page - use relative path
-  const currentPath = window.location.pathname;
-  if (currentPath.includes('/home/')) {
-    window.location.href = '../login.html';
-  } else {
-    window.location.href = 'login.html';
-  }
+  // Redirect to login page with absolute path
+  window.location.href = '/login.html';
 }
 
 /**

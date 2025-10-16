@@ -186,6 +186,10 @@ class PasswordHasher:
         return PasswordHash("pbkdf2_sha256", salt, self.iterations, base64url(dk))
 
     def verify(self, password: str, stored: PasswordHash) -> bool:
+        # Check if this is a Google OAuth user (no password login allowed)
+        if stored.algorithm == "google_oauth":
+            return False
+        
         dk = hashlib.pbkdf2_hmac(
             "sha256", password.encode("utf-8"), stored.salt.encode("utf-8"), stored.iterations
         )
@@ -231,13 +235,15 @@ DEFAULT_ROLES: Dict[str, Role] = {
 
 @dataclass(slots=True)
 class User:
+    id: int
     username: str
     email: str
-    password: PasswordHash
+    password_hash: PasswordHash
     roles: Set[str] = field(default_factory=lambda: {"user"})
     permissions: Set[str] = field(default_factory=set)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_login: Optional[datetime] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     refresh_tokens: Dict[str, datetime] = field(default_factory=dict)  # token_id -> expiry
 
     def all_permissions(self) -> Set[str]:
@@ -257,9 +263,21 @@ class AccessTokenClaims:
     roles: List[str]
     permissions: List[str]
     token_id: str
+    user_id: Optional[int] = None
+    username: Optional[str] = None
 
     def to_json(self) -> str:
-        return json.dumps(self.__dict__, separators=(",", ":"), sort_keys=True)
+        data = {
+            'sub': self.sub,
+            'iat': self.iat,
+            'exp': self.exp,
+            'roles': self.roles,
+            'permissions': self.permissions,
+            'token_id': self.token_id,
+            'user_id': self.user_id,
+            'username': self.username
+        }
+        return json.dumps(data, separators=(",", ":"), sort_keys=True, default=str)
 
     @staticmethod
     def from_json(data: str) -> "AccessTokenClaims":
@@ -271,6 +289,8 @@ class AccessTokenClaims:
             roles=list(obj.get("roles", [])),
             permissions=list(obj.get("permissions", [])),
             token_id=obj["token_id"],
+            user_id=obj.get("user_id"),
+            username=obj.get("username")
         )
 
 
@@ -278,8 +298,10 @@ class AccessTokenClaims:
 class LoginResult:
     access_token: str
     refresh_token: str
+    user_id: int
     username: str
-    expires_at: datetime
+    roles: Set[str]
+    expires_at: Optional[datetime] = None
 
 
 # ============================
@@ -303,10 +325,34 @@ class InMemoryUserRepository(UserRepository):
     def __init__(self):
         self._lock = threading.RLock()
         self._users: Dict[str, User] = {}
+        self._users_by_id: Dict[int, User] = {}
+        self._users_by_email: Dict[str, User] = {}
+        self._next_user_id = 1
+
+    def _next_id(self) -> int:
+        """Generate next user ID."""
+        with self._lock:
+            user_id = self._next_user_id
+            self._next_user_id += 1
+            return user_id
 
     def get(self, username: str) -> Optional[User]:  # type: ignore[override]
         with self._lock:
             return self._users.get(_norm_username(username))
+    
+    def find_by_username(self, username: str) -> Optional[User]:
+        """Find user by username."""
+        return self.get(username)
+    
+    def find_by_email(self, email: str) -> Optional[User]:
+        """Find user by email address."""
+        with self._lock:
+            return self._users_by_email.get(email.lower())
+    
+    def find_by_id(self, user_id: int) -> Optional[User]:
+        """Find user by ID."""
+        with self._lock:
+            return self._users_by_id.get(user_id)
 
     def add(self, user: User) -> None:  # type: ignore[override]
         with self._lock:
@@ -314,14 +360,25 @@ class InMemoryUserRepository(UserRepository):
             if key in self._users:
                 raise UserAlreadyExists(user.username)
             self._users[key] = user
+            self._users_by_id[user.id] = user
+            self._users_by_email[user.email.lower()] = user
+    
+    def save(self, user: User) -> None:
+        """Save or update user."""
+        with self._lock:
+            key = _norm_username(user.username)
+            self._users[key] = user
+            self._users_by_id[user.id] = user
+            self._users_by_email[user.email.lower()] = user
 
     def update(self, user: User) -> None:  # type: ignore[override]
         with self._lock:
             key = _norm_username(user.username)
             if key not in self._users:
                 raise AuthError("Cannot update missing user")
-            user.updated_at = datetime.now(timezone.utc)
             self._users[key] = user
+            self._users_by_id[user.id] = user
+            self._users_by_email[user.email.lower()] = user
 
 
 # ============================
@@ -494,12 +551,25 @@ class AuthService:
             raise AuthError("Invalid email format")
         enforce_password_policy(password)
         pwd_hash = self.hasher.hash(password)
-        user = User(uname, email.strip().lower(), pwd_hash, roles=set(roles) if roles else {"user"})
+        
+        user = User(
+            id=self.repo._next_id(),
+            username=uname,
+            email=email.strip().lower(),
+            password_hash=pwd_hash,
+            roles=set(roles) if roles else {"user"},
+            created_at=self.clock.now()
+        )
+        
         self.repo.add(user)
         self.metrics.registrations += 1
         self.audit.record(AuditEvent(self.clock.now(), "register", uname, "user created"))
         self._ensure_min_delay(start)
         return user
+    
+    def _emit_event(self, event_type: str, username: str, detail: str = ""):
+        """Emit an audit event."""
+        self.audit.record(AuditEvent(self.clock.now(), event_type, username, detail))
 
     # ---- Login ----
     def login(self, username: str, password: str, ip: str = "0.0.0.0") -> LoginResult:
@@ -514,22 +584,33 @@ class AuthService:
             self.audit.record(AuditEvent(self.clock.now(), "login.fail", username, "user missing"))
             self._ensure_min_delay(start)
             raise InvalidCredentials("Invalid credentials")
-        if not self.hasher.verify(password, user.password):
+        if not self.hasher.verify(password, user.password_hash):
             self.metrics.failed_logins += 1
             self.audit.record(AuditEvent(self.clock.now(), "login.fail", username, "bad password"))
             self._ensure_min_delay(start)
             raise InvalidCredentials("Invalid credentials")
-        jwt, claims = self._issue_access_token(user)
+        
+        # Update last login
+        user.last_login = self.clock.now()
+        
+        jwt = self._issue_access_token(user)
         refresh_token, refresh_id = self._issue_refresh_token(user)
-        user.refresh_tokens[refresh_id] = claims.exp * 0  # placeholder (not used for access)
+        user.refresh_tokens[refresh_id] = self.clock.now() + self.config.refresh_token_ttl
         self.repo.update(user)
         self.metrics.logins += 1
         self.audit.record(AuditEvent(self.clock.now(), "login.success", user.username, ""))
         self._ensure_min_delay(start)
-        return LoginResult(jwt, refresh_token, user.username, datetime.fromtimestamp(claims.exp, tz=timezone.utc))
+        
+        return LoginResult(
+            access_token=jwt,
+            refresh_token=refresh_token,
+            user_id=user.id,
+            username=user.username,
+            roles=user.roles
+        )
 
     # ---- Token issuance ----
-    def _issue_access_token(self, user: User) -> Tuple[str, AccessTokenClaims]:
+    def _issue_access_token(self, user: User) -> str:
         now = self.clock.now()
         iat = int(now.timestamp())
         exp = int((now + self.config.access_token_ttl).timestamp())
@@ -541,10 +622,12 @@ class AuthService:
             roles=sorted(user.roles),
             permissions=sorted(user.all_permissions()),
             token_id=token_id,
+            user_id=user.id,
+            username=user.username
         )
         token = self.codec.encode(claims)
         self.metrics.token_issues += 1
-        return token, claims
+        return token
 
     def _issue_refresh_token(self, user: User) -> Tuple[str, str]:
         token_id = base64url(default_entropy(18))

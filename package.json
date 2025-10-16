@@ -9,7 +9,8 @@
   "start:static": "npx serve website -l $PORT"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "lite-server": "^2.6.1"

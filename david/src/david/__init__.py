@@ -15,6 +15,7 @@ from .auth import (  # nagyobb, részletes auth rendszer
     describe_user,
 )
 from .simple_auth import simple_login, get_config as simple_auth_config
+from .google_auth import GoogleAuthProvider, GoogleUserInfo, GoogleAuthError
 
 __all__ = [
     "auth_message",
@@ -26,6 +27,9 @@ __all__ = [
     "describe_user",
     "simple_login",  # egyszerű alap email+jelszó
     "simple_auth_config",
+    "GoogleAuthProvider",  # Google OAuth
+    "GoogleUserInfo",
+    "GoogleAuthError",
 ]
 
 

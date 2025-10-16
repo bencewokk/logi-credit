@@ -1,2 +1,3 @@
 # add python deps here
 pytest>=7.0,<9.0
+# No additional dependencies needed for Google OAuth - using urllib (built-in)

@@ -10,8 +10,9 @@ Lightweight, dependency-free (stdlib only) authentication & authorization layer 
 * Roles & permissions (default roles: `user`, `admin`)
 * Rate limiting (token bucket) for login attempts
 * Audit log (ring buffer) + basic metrics snapshot
+* **Google OAuth 2.0 Integration** - Social login támogatás
 
-The code lives in `src/david/auth.py` (~500 LOC, intentionally verbose & documented). Not production-grade (no persistence, no MFA, no external secrets manager) but structured to be swappable for a real backend later.
+The code lives in `src/david/auth.py` (~500 LOC, intentionally verbose & documented) and `src/david/google_auth.py` for Google OAuth. Not production-grade (no persistence, no MFA, no external secrets manager) but structured to be swappable for a real backend later.
 
 ---
 
@@ -40,7 +41,6 @@ python -m david.main  # prints example auth_message()
 
 Interactive REPL demo:
 
-<<<<<<< HEAD
 ```python
 from david import AuthService, InMemoryUserRepository
 repo = InMemoryUserRepository()
@@ -52,13 +52,41 @@ claims = auth.verify_access_token(res.access_token)
 print(claims.roles, claims.permissions)
 ```
 
+### Google OAuth Demo
+
+```python
+from david import GoogleAuthProvider, AuthService, InMemoryUserRepository
+import os
+
+repo = InMemoryUserRepository()
+auth = AuthService(repo)
+
+google_auth = GoogleAuthProvider(
+    auth_service=auth,
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET')
+)
+
+# Generate auth URL
+auth_url = google_auth.get_authorization_url()
+print(f"Redirect user to: {auth_url}")
+
+# After callback with code:
+# result = google_auth.authenticate_with_code(code)
+# print(f"Access token: {result.access_token}")
+```
+
+📖 **Részletes Google OAuth dokumentáció**: Lásd [README.google_oauth.md](README.google_oauth.md)
+
 ## File Overview
 
 ```
 src/david/
-  __init__.py       # Re-exports public API (AuthService, helpers)
+  __init__.py       # Re-exports public API (AuthService, GoogleAuthProvider, helpers)
   main.py           # Simple entry point using auth_message()
   auth.py           # Core in-memory auth implementation
+  simple_auth.py    # Simple email+password authentication
+  google_auth.py    # Google OAuth 2.0 integration
 ```
 
 Key classes / functions:
@@ -66,6 +94,7 @@ Key classes / functions:
 * InMemoryUserRepository – user storage (swap for DB-backed impl later)
 * PasswordHasher – PBKDF2 wrapper
 * AuthConfig – TTLs & security knobs
+* **GoogleAuthProvider** – Google OAuth 2.0 bejelentkezés
 * demo_register_and_login / describe_user – convenience helpers
 
 ### Login Flow Summary
@@ -86,18 +115,32 @@ Add MFA, persistent storage, or stronger hashing (e.g. Argon2) by introducing ne
 
 ## Testing
 
-Current test: `tests/test_auth.py` ensures legacy `auth_message()` remains.
+Current tests:
+* `tests/test_auth.py` - Basic auth_message() legacy test
+* `tests/test_google_auth.py` - Google OAuth flow testing (with mocks)
+
 Recommended additions:
 * Register + login happy path
 * Weak password rejection
 * Rate limit triggers after repeated failures
 * Token expiry edge case (simulate with FixedClock)
 * Permission denial & success
+* Google OAuth error handling
+
+Run tests:
+```powershell
+cd david
+pytest -v
+```
 
 ## Roadmap Ideas
 * Argon2id support via optional dependency
 * Pluggable persistence (SQLite/Postgres)
 * Web session layer (signed cookies)
+* Google OAuth state parameter for CSRF protection
+* Refresh token rotation for Google OAuth users
+* Account linking (multiple auth providers per user)
+* Profile picture display from Google
 * MFA (TOTP / WebAuthn) hooks
 * Structured logging & Prometheus metrics exporter
 
