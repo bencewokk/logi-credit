@@ -10,25 +10,51 @@ existing auth.py authentication system. It handles:
 Security notes:
   - Client ID and Client Secret must be stored securely (env vars)
   - ID tokens are verified for signature, audience, and issuer
-  - HTTPS is required in production for OAuth redirects
+  - HTTPS is required in production for OAuth redirects (localhost HTTP allowed for dev)
   - State parameter should be used to prevent CSRF attacks
 
 Setup:
   1. Create OAuth 2.0 credentials in Google Cloud Console
-  2. Configure authorized redirect URIs
-  3. Set environment variables: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+  2. Configure authorized redirect URIs:
+     - Development: http://localhost:3000/auth/google/callback
+     - Production: https://yourdomain.com/auth/google/callback
+  3. Set environment variables:
+     - GOOGLE_CLIENT_ID: Your Google OAuth Client ID
+     - GOOGLE_CLIENT_SECRET: Your Google OAuth Client Secret
+     - GOOGLE_REDIRECT_URI: The redirect URI (must match Google Console config)
   
 Usage example:
+  import os
   from david.google_auth import GoogleAuthProvider
   from david.auth import AuthService, InMemoryUserRepository
   
   repo = InMemoryUserRepository()
   auth_service = AuthService(repo)
-  google_auth = GoogleAuthProvider(auth_service, client_id="...", client_secret="...")
   
-  # After receiving authorization code from Google:
-  result = google_auth.authenticate_with_code(auth_code, redirect_uri)
+  # Credentials from environment variables
+  client_id = os.getenv('GOOGLE_CLIENT_ID')
+  client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+  # redirect_uri will be read from GOOGLE_REDIRECT_URI env var
+  
+  google_auth = GoogleAuthProvider(
+      auth_service, 
+      client_id=client_id, 
+      client_secret=client_secret
+  )
+  
+  # Generate authorization URL
+  auth_url = google_auth.get_authorization_url(state="random_state_token")
+  # Redirect user to auth_url
+  
+  # After receiving authorization code from Google callback:
+  result = google_auth.authenticate_with_code(code)
   access_token = result.access_token
+
+Environment Variables (required):
+  GOOGLE_CLIENT_ID: OAuth 2.0 Client ID from Google Cloud Console
+  GOOGLE_CLIENT_SECRET: OAuth 2.0 Client Secret from Google Cloud Console
+  GOOGLE_REDIRECT_URI: Callback URI (e.g., https://yourdomain.com/auth/google/callback)
+                       Use http://localhost:3000/auth/google/callback for local dev
 """
 
 from __future__ import annotations
@@ -40,6 +66,7 @@ import urllib.error
 import base64
 import hmac
 import hashlib
+import os
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 from datetime import datetime, timedelta
@@ -50,6 +77,7 @@ __all__ = [
     "GoogleAuthError",
     "GoogleAuthProvider",
     "GoogleUserInfo",
+    "create_google_auth_from_env",
 ]
 
 
@@ -86,7 +114,7 @@ class GoogleAuthProvider:
         auth_service: AuthService,
         client_id: str,
         client_secret: str,
-        redirect_uri: str = "http://localhost:3000/auth/google/callback"
+        redirect_uri: Optional[str] = None
     ):
         """
         Initialize Google Auth Provider.
@@ -95,11 +123,33 @@ class GoogleAuthProvider:
             auth_service: The main AuthService instance
             client_id: Google OAuth 2.0 Client ID
             client_secret: Google OAuth 2.0 Client Secret
-            redirect_uri: Redirect URI configured in Google Cloud Console
+            redirect_uri: Redirect URI configured in Google Cloud Console.
+                         If None, reads from GOOGLE_REDIRECT_URI env var.
+                         Must use HTTPS in production!
+        
+        Raises:
+            GoogleAuthError: If redirect_uri is not provided and not in env vars,
+                           or if using HTTP in production
         """
         self.auth_service = auth_service
         self.client_id = client_id
         self.client_secret = client_secret
+        
+        # Get redirect URI from parameter or environment variable
+        if redirect_uri is None:
+            redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
+            if not redirect_uri:
+                raise GoogleAuthError(
+                    "redirect_uri must be provided or set GOOGLE_REDIRECT_URI environment variable"
+                )
+        
+        # Validate redirect URI - must use HTTPS in production
+        if not redirect_uri.startswith(('https://', 'http://localhost', 'http://127.0.0.1')):
+            raise GoogleAuthError(
+                "redirect_uri must use HTTPS in production. "
+                "HTTP is only allowed for localhost/127.0.0.1 development."
+            )
+        
         self.redirect_uri = redirect_uri
     
     def get_authorization_url(self, state: Optional[str] = None) -> str:
@@ -332,3 +382,48 @@ class GoogleAuthProvider:
             username=user.username,
             roles=user.roles
         )
+
+
+def create_google_auth_from_env(auth_service: AuthService) -> GoogleAuthProvider:
+    """
+    Create GoogleAuthProvider from environment variables.
+    
+    Required environment variables:
+      - GOOGLE_CLIENT_ID: OAuth 2.0 Client ID
+      - GOOGLE_CLIENT_SECRET: OAuth 2.0 Client Secret
+      - GOOGLE_REDIRECT_URI: Callback URI (optional, defaults to localhost for dev)
+    
+    Args:
+        auth_service: The AuthService instance to use
+        
+    Returns:
+        Configured GoogleAuthProvider instance
+        
+    Raises:
+        GoogleAuthError: If required environment variables are missing
+        
+    Example:
+        from david.google_auth import create_google_auth_from_env
+        from david.auth import AuthService, InMemoryUserRepository
+        
+        repo = InMemoryUserRepository()
+        auth_service = AuthService(repo)
+        google_auth = create_google_auth_from_env(auth_service)
+    """
+    client_id = os.getenv('GOOGLE_CLIENT_ID')
+    client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+    redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
+    
+    if not client_id:
+        raise GoogleAuthError("GOOGLE_CLIENT_ID environment variable is required")
+    
+    if not client_secret:
+        raise GoogleAuthError("GOOGLE_CLIENT_SECRET environment variable is required")
+    
+    return GoogleAuthProvider(
+        auth_service=auth_service,
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri=redirect_uri  # Will use env var or raise error if not set
+    )
+
