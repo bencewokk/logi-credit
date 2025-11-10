@@ -1,92 +1,425 @@
 <!doctype html>
-<html lang="en">
+<html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Home - Logi Credit</title>
+  <title>Dashboard - Logi Credit</title>
   <link rel="stylesheet" href="../styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+    
+    header {
+      background: white;
+      border-bottom: 1px solid #e9ecef;
+      padding: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .header-title h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0 0 4px 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header-title p {
+      margin: 0;
+      color: #718096;
+      font-size: 14px;
+    }
+    
+    nav {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    
+    nav a {
+      color: #4a5568;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    nav a:hover {
+      background: #f7fafc;
+      color: #667eea;
+    }
+    
+    nav a.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .logout-btn {
+      background: #fee;
+      color: #c53030;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .logout-btn:hover {
+      background: #fc8181;
+      color: white;
+    }
+    
+    main {
+      padding: 32px 0;
+    }
+    
+    .welcome-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      border-radius: 16px;
+      margin-bottom: 32px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .welcome-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+    
+    .welcome-section p {
+      margin: 0;
+      opacity: 0.95;
+      font-size: 15px;
+    }
+    
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #e9ecef;
+      transition: all 0.2s;
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    
+    .card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0 0 8px 0;
+    }
+    
+    .card .muted {
+      color: #718096;
+      font-size: 14px;
+      margin: 0 0 20px 0;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    
+    .data-table thead {
+      background: #f7fafc;
+      border-radius: 8px;
+    }
+    
+    .data-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .data-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 14px;
+      color: #2d3748;
+    }
+    
+    .data-table tbody tr:hover {
+      background: #f7fafc;
+    }
+    
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-ok {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .status-pending {
+      background: #feebc8;
+      color: #744210;
+    }
+    
+    .status-failed {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+    
+    .chart-placeholder {
+      height: 200px;
+      background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a0aec0;
+      font-weight: 500;
+      margin-top: 16px;
+    }
+    
+    .analytics-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .summary-item {
+      text-align: center;
+      padding: 16px;
+      background: #f7fafc;
+      border-radius: 8px;
+    }
+    
+    .summary-label {
+      display: block;
+      font-size: 12px;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .summary-value {
+      display: block;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a202c;
+    }
+    
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      nav {
+        flex-wrap: wrap;
+      }
+      
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .analytics-summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   <header>
     <div class="container">
-      <h1>Logi Credit - Adminisztráció</h1>
-      <p class="tag">Üdvözöljük az admin felületen!</p>
-      <nav>
-        <a href="../home/">Dashboard</a>
-        <a href="../people/zsombi.html">zsombi</a>
-        <a href="../people/david.html">david</a>
-        <a href="../people/pali.html">pali</a>
-        <a href="../people/kristof.html">kristof</a>
-      </nav>
+      <div class="header-content">
+        <div class="header-title">
+          <h1>Logi Credit</h1>
+          <p>Admin Dashboard</p>
+        </div>
+        <nav>
+          <a href="../home/" class="active">Dashboard</a>
+          <a href="../people/david.html">Auth</a>
+          <a href="../people/pali.html">Analytics</a>
+          <a href="../people/kristof.html">Tranzakciók</a>
+          <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
+        </nav>
+      </div>
     </div>
   </header>
 
   <main class="container">
-    <section>
-      <h2>Welcome, <span id="user-name">User</span></h2>
-      <p class="muted">This is a skeleton home/dashboard shown after authentication. Replace with real data & components.</p>
-    </section>
+    <div class="welcome-section">
+      <h2>Üdvözöljük, <span id="user-name">Admin</span>!</h2>
+      <p>Itt kezelheted a rendszer beállításait és nyomon követheted a tranzakciókat.</p>
+    </div>
 
-    <section style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="dashboard-grid">
       <div class="card">
-        <h3>Analytics</h3>
-        <p class="muted">Daily disbursement volume over the past 7 days.</p>
+        <h3>📊 Analytics</h3>
+        <p class="muted">Napi kifizetési forgalom az elmúlt 7 napban</p>
         <div class="analytics-summary">
-          <div>
-            <span class="summary-label">Total volume</span>
-            <span class="summary-value" id="summary-total-volume">–</span>
+          <div class="summary-item">
+            <span class="summary-label">Összes</span>
+            <span class="summary-value">€42.5K</span>
           </div>
-          <div>
-            <span class="summary-label">Average ticket</span>
-            <span class="summary-value" id="summary-average-ticket">–</span>
+          <div class="summary-item">
+            <span class="summary-label">Átlag</span>
+            <span class="summary-value">€6.1K</span>
           </div>
-          <div>
-            <span class="summary-label">Approval rate</span>
-            <span class="summary-value" id="summary-approval-rate">–</span>
+          <div class="summary-item">
+            <span class="summary-label">Jóváhagyás</span>
+            <span class="summary-value">94%</span>
           </div>
         </div>
-        <div class="chart-container">
-          <canvas id="volumeChart"></canvas>
+        <div class="chart-placeholder">
+          📈 Grafikon placeholder
         </div>
       </div>
 
       <div class="card">
-  <h3>Recent transactions</h3>
-  <p class="muted" id="recent-transactions">Latest credit decisions generated by the scoring engine.</p>
-  <table class="data-table" aria-describedby="recent-transactions">
+        <h3>💳 Legutóbbi tranzakciók</h3>
+        <p class="muted">Legutóbbi hitelezési döntések a scoring motorból</p>
+        <table class="data-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Customer</th>
-              <th>Date</th>
-              <th>Amount</th>
-              <th>Status</th>
+              <th>Ügyfél</th>
+              <th>Dátum</th>
+              <th>Összeg</th>
+              <th>Státusz</th>
             </tr>
           </thead>
-          <tbody id="transaction-table-body"></tbody>
+          <tbody>
+            <tr>
+              <td>#1001</td>
+              <td>Kiss Péter</td>
+              <td>2025-11-09</td>
+              <td>€2,500</td>
+              <td><span class="status-badge status-ok">Jóváhagyva</span></td>
+            </tr>
+            <tr>
+              <td>#1002</td>
+              <td>Nagy Anna</td>
+              <td>2025-11-09</td>
+              <td>€1,800</td>
+              <td><span class="status-badge status-pending">Folyamatban</span></td>
+            </tr>
+            <tr>
+              <td>#1003</td>
+              <td>Szabó Gábor</td>
+              <td>2025-11-08</td>
+              <td>€3,200</td>
+              <td><span class="status-badge status-ok">Jóváhagyva</span></td>
+            </tr>
+            <tr>
+              <td>#1004</td>
+              <td>Kovács Éva</td>
+              <td>2025-11-08</td>
+              <td>€950</td>
+              <td><span class="status-badge status-failed">Elutasítva</span></td>
+            </tr>
+          </tbody>
         </table>
       </div>
-    </section>
+    </div>
 
-    <section>
-      <h3>Quick links</h3>
-      <ul>
-        <li><a href="../people/david.html">Auth notes (david)</a></li>
-        <li><a href="../people/pali.html">Analytics (pali)</a></li>
-        <li><a href="../people/kristof.html">Transactions (kristof)</a></li>
-      </ul>
-    </section>
+    <div class="card">
+      <h3>⚡ Gyors linkek</h3>
+      <p class="muted">Navigáció a főbb funkciókhoz</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px;">
+        <a href="../people/david.html" style="padding: 16px; background: #f7fafc; border-radius: 8px; text-decoration: none; color: #2d3748; font-weight: 600; transition: all 0.2s; display: block;">
+          🔐 Autentikáció
+        </a>
+        <a href="../people/pali.html" style="padding: 16px; background: #f7fafc; border-radius: 8px; text-decoration: none; color: #2d3748; font-weight: 600; transition: all 0.2s; display: block;">
+          📊 Analitika
+        </a>
+        <a href="../people/kristof.html" style="padding: 16px; background: #f7fafc; border-radius: 8px; text-decoration: none; color: #2d3748; font-weight: 600; transition: all 0.2s; display: block;">
+          💰 Tranzakciók
+        </a>
+      </div>
+    </div>
 
   </main>
 
-  <footer>
+  <footer style="background: white; border-top: 1px solid #e9ecef; padding: 20px 0; margin-top: 40px; text-align: center;">
     <div class="container">
-      <p class="muted">Home skeleton — implement server-side data and auth as needed.</p>
+      <p style="margin: 0; color: #718096; font-size: 14px;">© 2025 Logi Credit. Minden jog fenntartva.</p>
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" integrity="sha384-QKfapWS9Vyuk3FIk8al/F0nJa9dOwC9ChegeExl9DzOegUUqFJUIMUNVwruz7hK9" crossorigin="anonymous"></script>
   <script src="../app.js"></script>
-  <script src="./dashboard.js"></script>
+  <script>
+    // Update user name
+    const userName = localStorage.getItem('userName');
+    if (userName) {
+      document.getElementById('user-name').textContent = userName;
+    }
+    
+    // Logout function
+    function logout() {
+      if (confirm('Biztosan ki szeretnél jelentkezni?')) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('loginTime');
+        window.location.href = '../login.html';
+      }
+    }
+  </script>
 </body>
 </html>
