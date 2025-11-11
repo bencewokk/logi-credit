@@ -41,7 +41,18 @@
       gap: 16px;
     }
     
-    .header-title h1 {
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .header-title .logo {
+      height: 50px;
+      margin: 0;
+    }
+    
+    .header-title-text h1 {
       font-size: 24px;
       font-weight: 700;
       color: #1a202c;
@@ -52,7 +63,7 @@
       background-clip: text;
     }
     
-    .header-title p {
+    .header-title-text p {
       margin: 0;
       color: #718096;
       font-size: 14px;
@@ -289,8 +300,11 @@
     <div class="container">
       <div class="header-content">
         <div class="header-title">
-          <h1>Logi Credit</h1>
-          <p>Admin Dashboard</p>
+          <img src="../1000013760.png" alt="Logi Credit Logo" class="logo">
+          <div class="header-title-text">
+            <h1>Logi Credit</h1>
+            <p>Admin Dashboard</p>
+          </div>
         </div>
         <nav>
           <a href="../home/" class="active">Dashboard</a>
