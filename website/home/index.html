@@ -341,8 +341,8 @@
             <span class="summary-value">94%</span>
           </div>
         </div>
-        <div class="chart-placeholder">
-          📈 Grafikon placeholder
+        <div style="height:320px; margin-top:16px;">
+          <canvas id="volumeChart" aria-label="Analytics chart" role="img" style="width:100%;height:100%;"></canvas>
         </div>
       </div>
 
@@ -417,6 +417,10 @@
     </div>
   </footer>
 
+  <!-- Chart.js for analytics (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Page-specific dashboard logic -->
+  <script src="dashboard.js"></script>
   <script src="../app.js"></script>
   <script>
     // Update user name
