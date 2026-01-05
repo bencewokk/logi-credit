@@ -15,9 +15,8 @@
       <h2>Transactions mock</h2>
       <table style="width:100%;border-collapse:collapse">
         <thead><tr><th>ID</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>2025-09-29</td><td>1000</td><td>ok</td></tr>
-          <tr><td>2</td><td>2025-09-28</td><td>250</td><td>pending</td></tr>
+        <tbody id="kristof-transaction-body">
+          <!-- Filled from ../data/transactions.json -->
         </tbody>
       </table>
     </section>
@@ -30,5 +29,26 @@
     <p><a href="../index.html">Back to home</a></p>
   </div>
   <script src="../app.js"></script>
+  <script>
+    async function loadKristofTransactions() {
+      try {
+        const resp = await fetch('../data/transactions.json');
+        if (!resp.ok) return;
+        const txs = await resp.json();
+        const tbody = document.getElementById('kristof-transaction-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        txs.forEach(tx => {
+          const tr = document.createElement('tr');
+          const statusLabel = tx.status === 'approved' ? 'ok' : (tx.status === 'rejected' ? 'failed' : 'pending');
+          tr.innerHTML = `<td>${tx.id}</td><td>${tx.date}</td><td>${(tx.amount/1000).toLocaleString()}k</td><td>${statusLabel}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Could not load kristof transactions', err);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadKristofTransactions);
+  </script>
 </body>
 </html>
