@@ -12,12 +12,47 @@
     <p>Role: Tranzakciók</p>
 
     <section>
-      <h2>Transactions mock</h2>
+      <h2>Transactions</h2>
+
+      <form id="transferForm" style="display:grid;grid-template-columns:1fr 160px;gap:12px;align-items:end;margin:16px 0;">
+        <div>
+          <label for="toUser" style="display:block;font-weight:600;margin-bottom:6px;">Recipient (username or email)</label>
+          <input id="toUser" name="toUser" type="text" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;" />
+          <div style="margin-top:6px;font-size:12px;color:#666;">Tip: start typing, we’ll suggest known users.</div>
+          <datalist id="userSuggestions"></datalist>
+        </div>
+        <div>
+          <label for="amount" style="display:block;font-weight:600;margin-bottom:6px;">Amount (HUF)</label>
+          <input id="amount" name="amount" type="number" min="1" step="1" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;" />
+        </div>
+        <div style="grid-column:1 / -1;">
+          <label for="note" style="display:block;font-weight:600;margin-bottom:6px;">Note (optional)</label>
+          <input id="note" name="note" type="text" maxlength="140" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;" />
+        </div>
+        <div style="grid-column:1 / -1;display:flex;gap:12px;align-items:center;">
+          <button type="submit" id="sendBtn" style="padding:10px 14px;border-radius:8px;border:0;background:#111827;color:#fff;font-weight:600;cursor:pointer;">Send</button>
+          <span id="transferMsg" style="font-size:13px;"></span>
+        </div>
+      </form>
+
       <table style="width:100%;border-collapse:collapse">
+<<<<<<< HEAD
         <thead><tr><th>ID</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
         <tbody id="kristof-transaction-body">
           <!-- Filled from ../data/transactions.json -->
         </tbody>
+=======
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">When</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">From</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">To</th>
+            <th style="text-align:right;padding:10px;border-bottom:1px solid #eee;">Amount</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Note</th>
+          </tr>
+        </thead>
+        <tbody id="txBody"></tbody>
+>>>>>>> 5d6ba24fc047f322991823de3c0dffbc01657a9a
       </table>
     </section>
 
@@ -30,6 +65,7 @@
   </div>
   <script src="../app.js"></script>
   <script>
+<<<<<<< HEAD
     async function loadKristofTransactions() {
       try {
         const resp = await fetch('../data/transactions.json');
@@ -49,6 +85,140 @@
       }
     }
     document.addEventListener('DOMContentLoaded', loadKristofTransactions);
+=======
+    const formatCurrency = new Intl.NumberFormat('hu-HU', {
+      style: 'currency',
+      currency: 'HUF',
+      maximumFractionDigits: 0
+    });
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('authToken');
+      return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    async function loadUsers() {
+      const toInput = document.getElementById('toUser');
+      const datalist = document.getElementById('userSuggestions');
+      if (!toInput || !datalist) return;
+
+      // Wire datalist to input
+      toInput.setAttribute('list', 'userSuggestions');
+
+      const res = await fetch('/api/users', { headers: { ...getAuthHeaders() } });
+      const data = await res.json();
+      if (!data.success) return;
+
+      datalist.innerHTML = '';
+      (data.users || []).forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.username;
+        datalist.appendChild(opt);
+        if (u.email) {
+          const opt2 = document.createElement('option');
+          opt2.value = u.email;
+          datalist.appendChild(opt2);
+        }
+      });
+    }
+
+    function renderTransactions(transactions) {
+      const body = document.getElementById('txBody');
+      if (!body) return;
+
+      body.innerHTML = '';
+
+      if (!transactions || transactions.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="5" style="padding:12px;color:#666;">No transactions yet.</td>`;
+        body.appendChild(row);
+        return;
+      }
+
+      transactions.forEach(tx => {
+        const from = tx.fromUser?.username || tx.fromUser?.email || '—';
+        const to = tx.toUser?.username || tx.toUser?.email || '—';
+        const when = tx.createdAt ? new Date(tx.createdAt) : null;
+        const whenText = when ? when.toLocaleString('hu-HU') : '—';
+        const amountText = formatCurrency.format(Number(tx.amount || 0));
+        const noteText = tx.note ? String(tx.note) : '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${whenText}</td>
+          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${from}</td>
+          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${to}</td>
+          <td style="padding:10px;border-bottom:1px solid #f2f2f2;text-align:right;">${amountText}</td>
+          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${noteText}</td>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    async function loadTransactions() {
+      const res = await fetch('/api/transactions?limit=50', { headers: { ...getAuthHeaders() } });
+      const data = await res.json();
+      if (!data.success) {
+        renderTransactions([]);
+        return;
+      }
+      renderTransactions(data.transactions || []);
+    }
+
+    async function submitTransfer(e) {
+      e.preventDefault();
+      const msg = document.getElementById('transferMsg');
+      const btn = document.getElementById('sendBtn');
+
+      const to = document.getElementById('toUser').value.trim();
+      const amount = Number(document.getElementById('amount').value);
+      const note = document.getElementById('note').value;
+
+      if (btn) btn.disabled = true;
+      if (msg) {
+        msg.textContent = 'Sending...';
+        msg.style.color = '#666';
+      }
+
+      try {
+        const res = await fetch('/api/transactions/transfer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
+          body: JSON.stringify({ to, amount, note })
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.message || 'Transfer failed');
+        }
+
+        if (msg) {
+          msg.textContent = 'Sent.';
+          msg.style.color = '#16a34a';
+        }
+        document.getElementById('transferForm').reset();
+        await loadTransactions();
+      } catch (err) {
+        if (msg) {
+          msg.textContent = err.message || 'Transfer failed';
+          msg.style.color = '#dc2626';
+        }
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const form = document.getElementById('transferForm');
+      if (form) form.addEventListener('submit', submitTransfer);
+
+      await loadUsers();
+      await loadTransactions();
+    });
+>>>>>>> 5d6ba24fc047f322991823de3c0dffbc01657a9a
   </script>
 </body>
 </html>

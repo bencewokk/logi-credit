@@ -17,7 +17,56 @@ document.addEventListener('DOMContentLoaded',()=>{
   
   // Update user name if displayed
   updateUserName();
+
+  // Render git version in the footer (commit + date)
+  renderBuildInfo();
 })
+
+async function renderBuildInfo() {
+  // Avoid duplicate insertion
+  if (document.getElementById('build-info')) return;
+
+  let version;
+  try {
+    const res = await fetch(`/version.json?_=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return;
+    version = await res.json();
+  } catch {
+    return;
+  }
+
+  const commit = (version && version.commit) ? String(version.commit) : 'unknown';
+  const rawDate = (version && version.date) ? String(version.date) : '';
+  const date = rawDate ? rawDate.slice(0, 10) : '';
+  const text = date ? `Version: ${commit} (${date})` : `Version: ${commit}`;
+
+  // login.html uses a custom footer element
+  const loginFooter = document.querySelector('.footer-text');
+  if (loginFooter) {
+    const span = document.createElement('span');
+    span.id = 'build-info';
+    span.textContent = ` • ${commit}${date ? ` • ${date}` : ''}`;
+    loginFooter.appendChild(span);
+    return;
+  }
+
+  let footer = document.querySelector('footer');
+  if (!footer) {
+    // Create a simple footer for pages that don't have one (e.g. people pages)
+    footer = document.createElement('footer');
+    const container = document.createElement('div');
+    container.className = 'container';
+    footer.appendChild(container);
+    document.body.appendChild(footer);
+  }
+
+  const container = footer.querySelector('.container') || footer;
+  const p = document.createElement('p');
+  p.id = 'build-info';
+  p.style.margin = '6px 0 0 0';
+  p.textContent = text;
+  container.appendChild(p);
+}
 
 /**
  * Check if user is authenticated and redirect to login if not
@@ -62,7 +111,12 @@ function addLogoutFunctionality() {
   
   if (isAuthenticated) {
     const nav = document.querySelector('header nav');
-    if (nav && !document.getElementById('logoutButton')) {
+    // Avoid duplicates: some pages already render their own logout button.
+    const pageAlreadyHasLogout =
+      document.getElementById('logoutButton') ||
+      (nav && nav.querySelector('.logout-btn'));
+
+    if (nav && !pageAlreadyHasLogout) {
       const logoutButton = document.createElement('a');
       logoutButton.href = '#';
       logoutButton.textContent = 'Kijelentkezés';

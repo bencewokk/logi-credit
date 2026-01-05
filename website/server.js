@@ -7,11 +7,32 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://bencewokk_db_user:rCYST066jBQI0P5g@logicredit.xe76mbo.mongodb.net/logicredit?retryWrites=true&w=majority';
+// NOTE: Do not hard-code credentials here. Set MONGODB_URI in your environment (Render/localhost).
+const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connected successfully'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+// Fail fast instead of buffering operations for 10s+ when DB is down.
+mongoose.set('bufferCommands', false);
+mongoose.set('bufferTimeoutMS', 0);
+
+if (!MONGODB_URI) {
+  console.warn('⚠️  MONGODB_URI is not set. Database-backed endpoints will be unavailable.');
+} else {
+  mongoose
+    .connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10_000,
+      connectTimeoutMS: 10_000
+    })
+    .then(() => console.log('✅ MongoDB connected successfully'))
+    .catch(err => console.error('❌ MongoDB connection error:', err));
+}
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️  MongoDB disconnected');
+});
+
+function isDbConnected() {
+  return mongoose.connection.readyState === 1;
+}
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -24,6 +45,26 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
+
+async function resolveCurrentDbUser(session) {
+  if (!session) return null;
+  const query = session.email
+    ? { $or: [{ email: session.email }, { username: session.username }] }
+    : { username: session.username };
+  return User.findOne(query);
+}
+
+// Transaction Schema (user-to-user transfers)
+const transactionSchema = new mongoose.Schema({
+  fromUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  toUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  amount: { type: Number, required: true, min: 1 },
+  currency: { type: String, default: 'HUF' },
+  note: { type: String, trim: true, maxlength: 140 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Transaction = mongoose.model('Transaction', transactionSchema);
 
 // Google OAuth configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
@@ -88,6 +129,15 @@ app.post('/api/register', async (req, res) => {
       message: 'Érvénytelen email cím'
     });
   }
+
+  // If DB is down, fail fast with a clear message (prevents buffering timeouts -> 500).
+  if (!isDbConnected()) {
+    return res.status(503).json({
+      success: false,
+      code: 'DB_UNAVAILABLE',
+      message: 'Az adatbázis jelenleg nem elérhető. Próbáld újra később.'
+    });
+  }
   
   try {
     // Check if user already exists
@@ -127,7 +177,40 @@ app.post('/api/register', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Registration error:', error);
-    res.status(500).json({
+
+    // Common DB connectivity error patterns (Atlas whitelist, network issues, etc.)
+    const errorMessage = String(error && (error.message || error));
+    const isDbConnectivityIssue =
+      error?.name === 'MongooseServerSelectionError' ||
+      /buffering timed out/i.test(errorMessage) ||
+      /Could not connect to any servers/i.test(errorMessage);
+
+    if (isDbConnectivityIssue) {
+      return res.status(503).json({
+        success: false,
+        code: 'DB_UNAVAILABLE',
+        message: 'Az adatbázis jelenleg nem elérhető. Próbáld újra később.'
+      });
+    }
+
+    // Duplicate key (race condition between findOne + save)
+    if (error?.code === 11000) {
+      const duplicateField = Object.keys(error.keyPattern || error.keyValue || {})[0];
+      const friendly =
+        duplicateField === 'username'
+          ? 'Ez a felhasználónév már foglalt'
+          : duplicateField === 'email'
+            ? 'Ez az email cím már regisztrálva van'
+            : 'A megadott adatokkal már létezik felhasználó';
+
+      return res.status(400).json({
+        success: false,
+        code: 'DUPLICATE',
+        message: friendly
+      });
+    }
+
+    return res.status(500).json({
       success: false,
       message: 'Szerverhiba történt. Próbáld újra később.'
     });
@@ -160,6 +243,14 @@ app.post('/api/login', async (req, res) => {
         username: username,
         role: 'admin'
       }
+    });
+  }
+
+  if (!isDbConnected()) {
+    return res.status(503).json({
+      success: false,
+      code: 'DB_UNAVAILABLE',
+      message: 'Az adatbázis jelenleg nem elérhető. Próbáld újra később.'
     });
   }
   
@@ -214,7 +305,21 @@ app.post('/api/login', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Login error:', error);
-    res.status(500).json({
+    const errorMessage = String(error && (error.message || error));
+    const isDbConnectivityIssue =
+      error?.name === 'MongooseServerSelectionError' ||
+      /buffering timed out/i.test(errorMessage) ||
+      /Could not connect to any servers/i.test(errorMessage);
+
+    if (isDbConnectivityIssue) {
+      return res.status(503).json({
+        success: false,
+        code: 'DB_UNAVAILABLE',
+        message: 'Az adatbázis jelenleg nem elérhető. Próbáld újra később.'
+      });
+    }
+
+    return res.status(500).json({
       success: false,
       message: 'Szerverhiba történt'
     });
@@ -344,6 +449,148 @@ app.get('/api/user', requireAuth, (req, res) => {
   });
 });
 
+// List users (for selecting transaction recipients)
+app.get('/api/users', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({
+      success: false,
+      code: 'DB_UNAVAILABLE',
+      message: 'Az adatbázis jelenleg nem elérhető. Próbáld újra később.'
+    });
+  }
+
+  try {
+    const currentUser = await resolveCurrentDbUser(req.user);
+    const query = currentUser ? { _id: { $ne: currentUser._id } } : {};
+    const users = await User.find(query)
+      .select('username email role createdAt')
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    return res.json({
+      success: true,
+      users
+    });
+  } catch (error) {
+    console.error('❌ Users list error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Szerverhiba történt'
+    });
+  }
+});
+
+// Create a transaction (transfer) between users
+app.post('/api/transactions/transfer', requireAuth, async (req, res) => {
+  const { to, amount, note } = req.body || {};
+
+  if (!isDbConnected()) {
+    return res.status(503).json({
+      success: false,
+      code: 'DB_UNAVAILABLE',
+      message: 'Az adatbázis jelenleg nem elérhető. Próbáld újra később.'
+    });
+  }
+
+  const numericAmount = Number(amount);
+  if (!to || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Hibás tranzakció adatok (címzett és pozitív összeg kötelező)'
+    });
+  }
+
+  try {
+    const sender = await resolveCurrentDbUser(req.user);
+    if (!sender) {
+      return res.status(403).json({
+        success: false,
+        message: 'A tranzakció indításához helyi (regisztrált) felhasználó szükséges.'
+      });
+    }
+
+    const recipient = await User.findOne({
+      $or: [{ username: String(to).trim() }, { email: String(to).trim().toLowerCase() }]
+    });
+
+    if (!recipient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Címzett felhasználó nem található'
+      });
+    }
+
+    if (String(sender._id) === String(recipient._id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nem küldhetsz tranzakciót saját magadnak'
+      });
+    }
+
+    const tx = await Transaction.create({
+      fromUser: sender._id,
+      toUser: recipient._id,
+      amount: Math.round(numericAmount),
+      currency: 'HUF',
+      note: typeof note === 'string' ? note.trim().slice(0, 140) : undefined
+    });
+
+    return res.status(201).json({
+      success: true,
+      transactionId: tx._id,
+      message: 'Tranzakció létrehozva'
+    });
+  } catch (error) {
+    console.error('❌ Transfer error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Szerverhiba történt'
+    });
+  }
+});
+
+// List current user's transactions (sent + received)
+app.get('/api/transactions', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({
+      success: false,
+      code: 'DB_UNAVAILABLE',
+      message: 'Az adatbázis jelenleg nem elérhető. Próbáld újra később.'
+    });
+  }
+
+  try {
+    const currentUser = await resolveCurrentDbUser(req.user);
+    if (!currentUser) {
+      return res.status(403).json({
+        success: false,
+        message: 'A tranzakciók megtekintéséhez helyi (regisztrált) felhasználó szükséges.'
+      });
+    }
+
+    const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
+
+    const transactions = await Transaction.find({
+      $or: [{ fromUser: currentUser._id }, { toUser: currentUser._id }]
+    })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('fromUser', 'username email')
+      .populate('toUser', 'username email');
+
+    return res.json({
+      success: true,
+      transactions
+    });
+  } catch (error) {
+    console.error('❌ Transactions list error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Szerverhiba történt'
+    });
+  }
+});
+
 // Catch all handler - redirect to login if not authenticated
 app.get('*', (req, res) => {
   // For API routes, return 404
@@ -369,7 +616,6 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`🚀 Logi Credit szerver fut a http://localhost:${PORT} címen`);
     console.log(`🏠 Home page: http://localhost:${PORT}/home/`);
-    console.log(`🔐 Admin bejelentkezés szükséges`);
   });
 }
 
