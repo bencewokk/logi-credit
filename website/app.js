@@ -62,7 +62,12 @@ function addLogoutFunctionality() {
   
   if (isAuthenticated) {
     const nav = document.querySelector('header nav');
-    if (nav && !document.getElementById('logoutButton')) {
+    // Avoid duplicates: some pages already render their own logout button.
+    const pageAlreadyHasLogout =
+      document.getElementById('logoutButton') ||
+      (nav && nav.querySelector('.logout-btn'));
+
+    if (nav && !pageAlreadyHasLogout) {
       const logoutButton = document.createElement('a');
       logoutButton.href = '#';
       logoutButton.textContent = 'Kijelentkezés';
