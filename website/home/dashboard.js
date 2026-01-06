@@ -145,8 +145,9 @@ function renderChart(transactions) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const resp = await fetch('../data/transactions.json');
-    const transactions = resp.ok ? await resp.json() : [];
+    const transactions = (typeof getSharedTransactions === 'function')
+      ? await getSharedTransactions()
+      : [];
     renderTransactions(transactions);
     calculateSummaries(transactions);
     renderChart(transactions);
