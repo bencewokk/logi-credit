@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Add logout functionality if user is authenticated
   addLogoutFunctionality();
   
-  // Update user name if displayed
-  updateUserName();
+  // Hydrate user profile (OAuth/local) then update any displayed user name
+  ensureUserProfile().finally(updateUserName);
 
   // Render git version in the footer (commit + date)
   renderBuildInfo();
@@ -167,6 +167,35 @@ function updateUserName() {
   
   if (userNameElement && userName) {
     userNameElement.textContent = userName;
+  }
+}
+
+async function ensureUserProfile() {
+  const token = localStorage.getItem('authToken');
+  if (!isValidAuthToken(token)) return;
+
+  // If already set, don't overwrite.
+  if (localStorage.getItem('userName')) return;
+
+  try {
+    const resp = await fetch('/api/user', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (!resp.ok) return;
+
+    const data = await resp.json();
+    const user = data && data.user;
+    if (!user) return;
+
+    const displayName = user.name || user.username || user.email;
+    if (displayName) {
+      localStorage.setItem('userName', String(displayName));
+    }
+  } catch (e) {
+    // Non-fatal; UI can still work with token-only auth.
+    console.warn('Failed to load current user profile:', e);
   }
 }
 
