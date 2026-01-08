@@ -9,9 +9,15 @@
 <body>
   <script>
     // Redirect to login page if not authenticated
-    if (localStorage.getItem('authToken') !== 'authenticated') {
-      window.location.href = 'login.html';
-    }
+    (function () {
+      const token = localStorage.getItem('authToken');
+      const isAuthed = token && (
+        token === 'authenticated' ||
+        token.startsWith('authenticated_') ||
+        token.startsWith('google_auth_')
+      );
+      if (!isAuthed) window.location.href = 'login.html';
+    })();
   </script>
   <div class="dev-banner">
     <div class="container">

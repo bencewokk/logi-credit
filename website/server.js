@@ -38,7 +38,12 @@ function isDbConnected() {
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true, minlength: 3 },
   email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  password: { type: String, required: true, minlength: 6 },
+  // For Google OAuth users we don't store a password.
+  password: { type: String, required: function () { return (this.provider || 'local') === 'local'; }, minlength: 6 },
+  provider: { type: String, default: 'local', enum: ['local', 'google'] },
+  name: { type: String, trim: true },
+  picture: { type: String, trim: true },
+  googleId: { type: String, trim: true },
   role: { type: String, default: 'user', enum: ['user', 'admin'] },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date }
@@ -85,6 +90,20 @@ const ADMIN_CREDENTIALS = {
 
 // In-memory session storage (in production, use Redis or database)
 const sessions = new Map();
+
+async function createUniqueUsernameFromEmail(email) {
+  const base = String(email || '').trim().toLowerCase();
+  if (!base) return `user_${Date.now()}`;
+
+  // Prefer using the email itself as username.
+  let candidate = base;
+  for (let i = 0; i < 5; i++) {
+    const exists = await User.exists({ username: candidate });
+    if (!exists) return candidate;
+    candidate = `${base}_${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+  return `${base}_${Date.now()}`;
+}
 
 // Register endpoint
 app.post('/api/register', async (req, res) => {
@@ -266,6 +285,14 @@ app.post('/api/login', async (req, res) => {
       });
     }
     
+    // Prevent password-login for Google-only accounts
+    if ((user.provider || 'local') !== 'local') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ez a fiók Google bejelentkezéssel használható.'
+      });
+    }
+
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     
@@ -380,15 +407,42 @@ app.get('/auth/google/callback', async (req, res) => {
     });
     
     const userInfo = userInfoResponse.data;
-    
+
+    // Persist (or update) user in MongoDB for long-term storage.
+    // If DB is unavailable, we still allow an in-memory login.
+    let dbUser = null;
+    if (isDbConnected()) {
+      dbUser = await User.findOne({ email: userInfo.email });
+      if (!dbUser) {
+        const username = await createUniqueUsernameFromEmail(userInfo.email);
+        dbUser = new User({
+          username,
+          email: userInfo.email,
+          provider: 'google',
+          name: userInfo.name,
+          picture: userInfo.picture,
+          googleId: userInfo.sub,
+          role: 'user',
+          lastLogin: new Date()
+        });
+      } else {
+        dbUser.provider = 'google';
+        dbUser.name = userInfo.name;
+        dbUser.picture = userInfo.picture;
+        dbUser.googleId = userInfo.sub;
+        dbUser.lastLogin = new Date();
+      }
+      await dbUser.save();
+    }
+
     // Create session
     const token = 'google_auth_' + Date.now();
     sessions.set(token, {
-      username: userInfo.email,
+      username: dbUser?.username || userInfo.email,
       name: userInfo.name,
       email: userInfo.email,
       picture: userInfo.picture,
-      role: 'user',
+      role: dbUser?.role || 'user',
       loginTime: new Date().toISOString(),
       provider: 'google',
       google_id: userInfo.sub
