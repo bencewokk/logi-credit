@@ -392,14 +392,7 @@
     </div>
   </footer>
 
-  <!-- Chart.js for analytics (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Page-specific dashboard logic -->
-  <script src="dashboard.js"></script>
-  <script src="../app.js"></script>
-  <script>
-    // Update user name
-   !-- Transfer Modal -->
+  <!-- Transfer Modal -->
   <div id="transfer-modal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -435,12 +428,17 @@
     </div>
   </div>
 
-  < const userName = localStorage.getItem('userName');
+  <!-- Chart.js for analytics (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Page-specific dashboard logic -->
+  <script src="dashboard.js"></script>
+  <script src="../app.js"></script>
+  <script>
+    const userName = localStorage.getItem('userName');
     if (userName) {
       document.getElementById('user-name').textContent = userName;
     }
     
-    // Logout function
     function logout() {
       if (confirm('Biztosan ki szeretnél jelentkezni?')) {
         localStorage.removeItem('authToken');
