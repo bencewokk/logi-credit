@@ -345,7 +345,9 @@
   <main class="container">
     <div class="welcome-section">
       <h2>💰 Tranzakciók kezelése</h2>
-      <p>Itt kezelheted az utalásokat és megtekintheted a tranzakciók előzményeit.</p>
+      <p style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <span>Egyenleg: <strong id="user-balance">0</strong> HUF</span>
+      </p>
     </div>
 
     <div class="card">
@@ -408,6 +410,30 @@
         localStorage.removeItem('userName');
         localStorage.removeItem('loginTime');
         window.location.href = '../login.html';
+      }
+    }
+
+    async function loadUserBalance() {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        const response = await fetch('/api/user/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            const balanceEl = document.getElementById('user-balance');
+            if (balanceEl) {
+              const balance = data.user.balance || 0;
+              balanceEl.textContent = balance.toLocaleString('hu-HU');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load balance:', error);
       }
     }
 
@@ -477,6 +503,7 @@
     // Handle transfer form submission
     document.addEventListener('DOMContentLoaded', () => {
       loadKristofTransactions();
+      loadUserBalance();
       
       const form = document.getElementById('transferForm');
       const msgEl = document.getElementById('transferMsg');
@@ -516,18 +543,19 @@
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ toUser, amount, note })
+            body: JSON.stringify({ to: toUser, amount, note })
           });
 
           const data = await response.json();
 
           if (data.success) {
-            msgEl.textContent = '✅ Tranzakció sikeres!';
+            msgEl.textContent = `✅ ${data.message || 'Tranzakció sikeres!'}`;
             msgEl.className = 'transfer-msg success full-width';
             form.reset();
-            // Reload transactions
+            // Reload transactions and update balance display
             setTimeout(() => {
               loadKristofTransactions();
+              loadUserBalance();
               msgEl.style.display = 'none';
             }, 2000);
           } else {

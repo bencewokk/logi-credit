@@ -53,6 +53,13 @@ async function initializeUser() {
                 // Update UI Name
                 const nameEl = document.getElementById('user-name');
                 if (nameEl) nameEl.textContent = data.user.name || data.user.username;
+                
+                // Update UI Balance
+                const balanceEl = document.getElementById('user-balance');
+                if (balanceEl) {
+                    const balance = data.user.balance || 0;
+                    balanceEl.textContent = balance.toLocaleString('hu-HU');
+                }
             }
         }
     } catch (error) {
@@ -321,7 +328,7 @@ function setupTransferForm() {
                 // Success
                 closeModal();
                 await fetchTransactions(); // Refresh List
-                // alert('Sikeres utalás!'); // Optional replacement or just close
+                await initializeUser(); // Refresh balance
             } else {
                 showError(result.message || 'Hiba történt az utalás során.');
             }

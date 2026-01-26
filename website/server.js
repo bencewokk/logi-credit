@@ -45,6 +45,7 @@ const userSchema = new mongoose.Schema({
   picture: { type: String, trim: true },
   googleId: { type: String, trim: true },
   role: { type: String, default: 'user', enum: ['user', 'admin'] },
+  balance: { type: Number, default: 100000 }, // Starting balance in HUF
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date }
 });
@@ -503,6 +504,47 @@ app.get('/api/user', requireAuth, (req, res) => {
   });
 });
 
+// Get current user info from database (with balance)
+app.get('/api/user/me', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    // Return session user if DB unavailable
+    return res.json({
+      success: true,
+      user: req.user
+    });
+  }
+
+  try {
+    const dbUser = await resolveCurrentDbUser(req.user);
+    if (!dbUser) {
+      return res.json({
+        success: true,
+        user: req.user
+      });
+    }
+
+    return res.json({
+      success: true,
+      user: {
+        _id: dbUser._id,
+        username: dbUser.username,
+        email: dbUser.email,
+        name: dbUser.name,
+        picture: dbUser.picture,
+        role: dbUser.role,
+        balance: dbUser.balance || 0,
+        createdAt: dbUser.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('❌ User/me error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Szerverhiba történt'
+    });
+  }
+});
+
 // List users (for selecting transaction recipients)
 app.get('/api/users', requireAuth, async (req, res) => {
   if (!isDbConnected()) {
@@ -581,10 +623,29 @@ app.post('/api/transactions/transfer', requireAuth, async (req, res) => {
       });
     }
 
+    const transferAmount = Math.round(numericAmount);
+    const senderBalance = sender.balance || 0;
+
+    // Check if sender has enough balance
+    if (senderBalance < transferAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Nincs elég egyenleged. Jelenlegi egyenleg: ${senderBalance.toLocaleString('hu-HU')} HUF`
+      });
+    }
+
+    // Update balances
+    sender.balance = senderBalance - transferAmount;
+    const recipientBalance = recipient.balance || 0;
+    recipient.balance = recipientBalance + transferAmount;
+
+    await sender.save();
+    await recipient.save();
+
     const tx = await Transaction.create({
       fromUser: sender._id,
       toUser: recipient._id,
-      amount: Math.round(numericAmount),
+      amount: transferAmount,
       currency: 'HUF',
       note: typeof note === 'string' ? note.trim().slice(0, 140) : undefined
     });
@@ -592,7 +653,8 @@ app.post('/api/transactions/transfer', requireAuth, async (req, res) => {
     return res.status(201).json({
       success: true,
       transactionId: tx._id,
-      message: 'Tranzakció létrehozva'
+      message: 'Tranzakció sikeres!',
+      newBalance: sender.balance
     });
   } catch (error) {
     console.error('❌ Transfer error:', error);
