@@ -1,29 +1,253 @@
 <!doctype html>
-<html lang="en">
+<html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>pali - Logi Credit</title>
-  <link rel="stylesheet" href="../styles.css">
+  <title>Analytics - Logi Credit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .chart-card {
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .chart-card canvas {
+      max-height: 100%;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>pali</h1>
-    <p>Role: Analitika</p>
+  <header class="header">
+    <div class="header-left">
+      <img src="../1000013760.png" alt="Logo">
+      <span>Logi Credit</span>
+    </div>
+    <nav class="header-nav">
+      <a href="../home/">Dashboard</a>
+      <a href="david.html">Auth</a>
+      <a href="pali.html" class="active">Analytics</a>
+      <a href="kristof.html">Utalás</a>
+      <button class="theme-toggle" title="Téma váltás">🌙</button>
+      <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
+    </nav>
+  </header>
 
-    <section>
-      <h2>Analytics area</h2>
-      <p>Placeholder for charts and reports. You can drop in Chart.js or other libs to prototype visuals.</p>
-      <div id="chart-placeholder" style="height:200px;background:linear-gradient(90deg,#f1f5f9,#fff);border-radius:6px;display:flex;align-items:center;justify-content:center">Chart area</div>
-    </section>
+  <main class="main-container">
+    <!-- Header Card -->
+    <div class="balance-card">
+      <div class="balance-label">📊 Analitika & Statisztikák</div>
+      <div class="balance-amount" style="font-size:32px;">Pali</div>
+      <div class="balance-currency">Data Analytics & Visualization</div>
+    </div>
 
-    <section>
-      <h2>Notes</h2>
-      <p>Describe data sources, sample queries, and desired visualizations here.</p>
-    </section>
+    <!-- Stats Overview -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">📈</span>
+        Áttekintés
+      </h2>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="total-transactions">0</div>
+          <div class="stat-label">Összes tranzakció</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-volume">0</div>
+          <div class="stat-label">Forgalom (HUF)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avg-amount">0</div>
+          <div class="stat-label">Átlag összeg</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="user-count">-</div>
+          <div class="stat-label">Felhasználók</div>
+        </div>
+      </div>
+    </div>
 
-    <p><a href="../home/">Vissza a dashboard-ra</a></p>
-  </div>
+    <!-- Volume Chart -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">📊</span>
+        Napi forgalom
+      </h2>
+      <div class="chart-card">
+        <canvas id="volumeChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Distribution Chart -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🥧</span>
+        Tranzakció típusok
+      </h2>
+      <div class="chart-card" style="max-width:300px;margin:0 auto;">
+        <canvas id="typeChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🔧</span>
+        Analitikai funkciók
+      </h2>
+      
+      <ul class="info-list">
+        <li><span class="emoji">📊</span> Valós idejű tranzakció monitoring</li>
+        <li><span class="emoji">📈</span> Napi, heti, havi összesítések</li>
+        <li><span class="emoji">🥧</span> Vizuális kimutatások (Chart.js)</li>
+        <li><span class="emoji">📉</span> Trend elemzések</li>
+        <li><span class="emoji">🔍</span> Részletes szűrési lehetőségek</li>
+        <li><span class="emoji">📤</span> Adatok exportálása (CSV, PDF)</li>
+      </ul>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../theme.js"></script>
   <script src="../app.js"></script>
+  <script>
+    function logout() {
+      if (confirm('Biztosan ki szeretnél jelentkezni?')) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('loginTime');
+        window.location.href = '../login.html';
+      }
+    }
+
+    async function loadAnalytics() {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        const response = await fetch('/api/transactions?limit=100', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        
+        if (!data.success || !data.transactions) return;
+
+        const transactions = data.transactions;
+        
+        // Calculate stats
+        const totalVolume = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+        const avgAmount = transactions.length ? Math.round(totalVolume / transactions.length) : 0;
+        
+        document.getElementById('total-transactions').textContent = transactions.length;
+        document.getElementById('total-volume').textContent = (totalVolume / 1000).toFixed(1) + 'K';
+        document.getElementById('avg-amount').textContent = avgAmount.toLocaleString('hu-HU');
+
+        // Daily volume chart
+        const dailyData = {};
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const key = date.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
+          last7Days.push(key);
+          dailyData[key] = 0;
+        }
+
+        transactions.forEach(tx => {
+          const day = new Date(tx.createdAt).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' });
+          if (dailyData.hasOwnProperty(day)) {
+            dailyData[day] += tx.amount;
+          }
+        });
+
+        new Chart(document.getElementById('volumeChart'), {
+          type: 'line',
+          data: {
+            labels: last7Days,
+            datasets: [{
+              label: 'Forgalom (HUF)',
+              data: last7Days.map(day => dailyData[day]),
+              borderColor: '#00d4aa',
+              backgroundColor: 'rgba(0, 212, 170, 0.1)',
+              fill: true,
+              tension: 0.4,
+              borderWidth: 3,
+              pointRadius: 6,
+              pointBackgroundColor: '#00d4aa'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255,255,255,0.1)' },
+                ticks: { color: '#888' }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#888' }
+              }
+            }
+          }
+        });
+
+        // Type chart (sent vs received)
+        // We need current user to determine direction
+        const userRes = await fetch('/api/user/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        let sentCount = 0, receivedCount = 0;
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          const currentUsername = userData.user?.username || userData.user?.email || '';
+          
+          transactions.forEach(tx => {
+            const fromUsername = tx.fromUser?.username || tx.fromUser?.email || '';
+            if (fromUsername === currentUsername) sentCount++;
+            else receivedCount++;
+          });
+        }
+
+        new Chart(document.getElementById('typeChart'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Küldött', 'Fogadott'],
+            datasets: [{
+              data: [sentCount, receivedCount],
+              backgroundColor: ['#ef4444', '#00d4aa'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: '#888', padding: 20 }
+              }
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error('Failed to load analytics:', error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAnalytics);
+  </script>
 </body>
 </html>

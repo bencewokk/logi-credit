@@ -1,31 +1,131 @@
 <!doctype html>
-<html lang="en">
+<html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>zsombi - Logi Credit</title>
-  <link rel="stylesheet" href="../styles.css">
+  <title>Frontend - Logi Credit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../theme.css">
 </head>
 <body>
-  <div class="container">
-    <h1>zsombi</h1>
-    <p>Role: Frontend (HTML / UI)</p>
+  <header class="header">
+    <div class="header-left">
+      <img src="../1000013760.png" alt="Logo">
+      <span>Logi Credit</span>
+    </div>
+    <nav class="header-nav">
+      <a href="../home/">Dashboard</a>
+      <a href="david.html">Auth</a>
+      <a href="pali.html">Analytics</a>
+      <a href="kristof.html">Utalás</a>
+      <button class="theme-toggle" title="Téma váltás">🌙</button>
+      <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
+    </nav>
+  </header>
 
-    <section>
-      <h2>Starter notes</h2>
-      <p>Add pages/components you'd like to prototype here. Start with `index.html` pieces and use `styles.css` for shared styles.</p>
-    </section>
+  <main class="main-container">
+    <!-- Header Card -->
+    <div class="balance-card">
+      <div class="balance-label">🎨 Frontend & UI Design</div>
+      <div class="balance-amount" style="font-size:32px;">Zsombi</div>
+      <div class="balance-currency">HTML / CSS / JavaScript</div>
+    </div>
 
-    <section>
-      <h2>Tasks</h2>
-      <ul>
-        <li>Create a header UI and main dashboard layout.</li>
-        <li>Wire up static components for David's mock login and Kristof's transactions.</li>
+    <!-- Design System -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🎨</span>
+        Design Rendszer
+      </h2>
+      
+      <ul class="info-list">
+        <li><span class="emoji">🌓</span> Dark/Light mode támogatás</li>
+        <li><span class="emoji">📱</span> Responsive design (mobile-first)</li>
+        <li><span class="emoji">🎯</span> Modern, letisztult UI (Revolut-inspired)</li>
+        <li><span class="emoji">✨</span> Animációk és átmenetek</li>
+        <li><span class="emoji">🔤</span> Inter betűtípus</li>
+        <li><span class="emoji">🎨</span> CSS változók (custom properties)</li>
       </ul>
-    </section>
+    </div>
 
-    <p><a href="../home/">Vissza a dashboard-ra</a></p>
-  </div>
+    <!-- Color Palette -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🌈</span>
+        Színpaletta
+      </h2>
+      
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));">
+        <div class="stat-card" style="background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);">
+          <div class="stat-value" style="color:#fff;font-size:16px;">Primary</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8);">Gradient</div>
+        </div>
+        <div class="stat-card" style="background: #00d4aa;">
+          <div class="stat-value" style="color:#fff;font-size:16px;">#00d4aa</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8);">Success</div>
+        </div>
+        <div class="stat-card" style="background: #7c3aed;">
+          <div class="stat-value" style="color:#fff;font-size:16px;">#7c3aed</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8);">Accent</div>
+        </div>
+        <div class="stat-card" style="background: #ef4444;">
+          <div class="stat-value" style="color:#fff;font-size:16px;">#ef4444</div>
+          <div class="stat-label" style="color:rgba(255,255,255,0.8);">Error</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Components -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🧩</span>
+        UI Komponensek
+      </h2>
+      
+      <ul class="info-list">
+        <li><span class="emoji">📦</span> Card komponensek</li>
+        <li><span class="emoji">🔘</span> Gombok (primary, secondary, danger)</li>
+        <li><span class="emoji">📝</span> Form elemek (input, select, checkbox)</li>
+        <li><span class="emoji">📋</span> Listák és táblázatok</li>
+        <li><span class="emoji">📊</span> Chart komponensek (Chart.js)</li>
+        <li><span class="emoji">💬</span> Toast üzenetek</li>
+        <li><span class="emoji">🔄</span> Loading indikátorok</li>
+        <li><span class="emoji">👤</span> Avatar komponensek</li>
+      </ul>
+    </div>
+
+    <!-- Tasks -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">📋</span>
+        Feladatok
+      </h2>
+      
+      <ul class="info-list">
+        <li><span class="emoji">✅</span> Header és navigáció</li>
+        <li><span class="emoji">✅</span> Dashboard layout</li>
+        <li><span class="emoji">✅</span> Tranzakció lista</li>
+        <li><span class="emoji">✅</span> Utalás form</li>
+        <li><span class="emoji">✅</span> Dark/Light mode</li>
+        <li><span class="emoji">🔄</span> Profil oldal</li>
+        <li><span class="emoji">🔄</span> Értesítések panel</li>
+      </ul>
+    </div>
+  </main>
+
+  <script src="../theme.js"></script>
   <script src="../app.js"></script>
+  <script>
+    function logout() {
+      if (confirm('Biztosan ki szeretnél jelentkezni?')) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('loginTime');
+        window.location.href = '../login.html';
+      }
+    }
+  </script>
 </body>
 </html>

@@ -4,30 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Bejelentkezés - Logi Credit</title>
-  <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="theme.css">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 24px;
     }
     
     .login-wrapper {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       animation: fadeInUp 0.5s ease-out;
     }
     
@@ -42,23 +33,12 @@
       }
     }
     
-    .login-container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    .login-card {
+      background: var(--bg-card);
+      border-radius: 24px;
       padding: 48px 40px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .login-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border: 1px solid var(--border-primary);
+      box-shadow: var(--shadow-lg);
     }
     
     .login-header {
@@ -66,21 +46,63 @@
       margin-bottom: 40px;
     }
     
+    .login-header img {
+      height: 60px;
+      margin-bottom: 20px;
+    }
+    
     .login-header h1 {
-      font-size: 32px;
-      font-weight: 700;
-      color: #1a202c;
+      font-size: 28px;
+      font-weight: 800;
       margin-bottom: 8px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--accent-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
     }
     
     .login-header p {
-      color: #718096;
+      color: var(--text-muted);
       font-size: 15px;
-      font-weight: 500;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      background: var(--bg-tertiary);
+      padding: 6px;
+      border-radius: 16px;
+    }
+    
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .tab-btn.active {
+      background: var(--accent-gradient);
+      color: #fff;
+    }
+    
+    .tab-btn:not(.active):hover {
+      color: var(--text-primary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
     }
     
     .login-form {
@@ -89,498 +111,318 @@
       gap: 20px;
     }
     
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .form-group label {
-      font-weight: 600;
-      color: #2d3748;
-      font-size: 14px;
-      letter-spacing: -0.01em;
-    }
-    
-    .form-group input {
-      padding: 14px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 15px;
-      font-family: inherit;
-      transition: all 0.2s ease;
-      background: #f7fafc;
-    }
-    
-    .form-group input:hover {
-      border-color: #cbd5e0;
-      background: white;
-    }
-    
-    .form-group input:focus {
-      outline: none;
-      border-color: #667eea;
-      background: white;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-    }
-    
-    .login-button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 14px 24px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-family: inherit;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-      margin-top: 8px;
-    }
-    
-    .login-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    .login-button:active {
-      transform: translateY(0);
-    }
-    
-    .login-button:disabled {
-      background: #cbd5e0;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-    
-    .error-message {
-      color: #e53e3e;
-      font-size: 14px;
-      padding: 12px 16px;
-      background: #fff5f5;
-      border: 1px solid #feb2b2;
-      border-radius: 8px;
-      display: none;
-      animation: shake 0.4s ease;
-    }
-    
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-8px); }
-      75% { transform: translateX(8px); }
-    }
-    
-    .success-message {
-      color: #38a169;
-      font-size: 14px;
-      padding: 12px 16px;
-      background: #f0fff4;
-      border: 1px solid #9ae6b4;
-      border-radius: 8px;
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
     .divider {
       display: flex;
       align-items: center;
-      text-align: center;
-      margin: 28px 0;
-      color: #a0aec0;
+      gap: 16px;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px;
     }
     
     .divider::before,
     .divider::after {
       content: '';
       flex: 1;
-      border-bottom: 1px solid #e2e8f0;
+      height: 1px;
+      background: var(--border-primary);
     }
     
-    .divider span {
-      padding: 0 16px;
-      font-size: 13px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .google-button {
+    .google-btn {
       width: 100%;
-      background: white;
-      color: #2d3748;
-      border: 2px solid #e2e8f0;
-      padding: 14px 24px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
+      padding: 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 16px;
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
       font-family: inherit;
     }
     
-    .google-button:hover {
-      background: #f7fafc;
-      border-color: #cbd5e0;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    .google-btn:hover {
+      background: var(--border-secondary);
+      border-color: var(--border-secondary);
     }
     
-    .google-button:active {
-      transform: translateY(0);
-    }
-    
-    .google-button:disabled {
-      background: #f7fafc;
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
-    
-    .google-icon {
+    .google-btn svg {
       width: 20px;
       height: 20px;
     }
     
+    .error-message {
+      background: var(--error-bg);
+      color: var(--error);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+    
+    .success-message {
+      background: var(--success-bg);
+      color: var(--success);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+    
+    .success-message.show {
+      display: block;
+    }
+    
+    .theme-toggle-login {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+    }
+    
     .footer-text {
       text-align: center;
-      margin-top: 24px;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 14px;
-      font-weight: 500;
+      margin-top: 32px;
+      color: var(--text-muted);
+      font-size: 13px;
     }
     
     .footer-text a {
-      color: white;
+      color: var(--accent-primary);
       text-decoration: none;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-      transition: border-color 0.2s;
     }
     
-    .footer-text a:hover {
-      border-bottom-color: white;
-    }
-    
-    /* Responsive */
     @media (max-width: 480px) {
-      .login-container {
+      .login-card {
         padding: 32px 24px;
-      }
-      
-      .login-header h1 {
-        font-size: 28px;
       }
     }
   </style>
 </head>
 <body>
+  <button class="theme-toggle theme-toggle-login" title="Téma váltás">🌙</button>
+
   <div class="login-wrapper">
-    <div class="login-container">
+    <div class="login-card">
       <div class="login-header">
-        <img src="1000013760.png" alt="Logi Credit Logo" class="logo">
+        <img src="1000013760.png" alt="Logi Credit Logo">
         <h1>Logi Credit</h1>
-        <p id="formTitle">Jelentkezz be a folytatáshoz</p>
+        <p>Jelentkezz be a fiókodba</p>
       </div>
-      
-      <!-- Tab buttons -->
-      <div class="tab-buttons" style="display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; overflow: hidden; border: 2px solid #e2e8f0;">
-        <button type="button" class="tab-btn active" id="loginTab" style="flex: 1; padding: 12px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.3s;">Bejelentkezés</button>
-        <button type="button" class="tab-btn" id="registerTab" style="flex: 1; padding: 12px; border: none; background: #f7fafc; color: #718096; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.3s;">Regisztráció</button>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="login">Bejelentkezés</button>
+        <button class="tab-btn" data-tab="register">Regisztráció</button>
       </div>
-    
-    <!-- Google Sign In Button -->
-    <button type="button" class="google-button" id="googleLoginButton">
-      <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
-      <span id="googleBtnText">Bejelentkezés Google-lal</span>
-    </button>
-    
-    <div class="divider">
-      <span>vagy</span>
-    </div>
-    
-    <!-- Login Form -->
-    <form class="login-form" id="loginForm">
-      <div class="form-group">
-        <label for="username">Felhasználónév vagy Email:</label>
-        <input type="text" id="username" name="username" required autocomplete="username">
+
+      <!-- Login Tab -->
+      <div class="tab-content active" id="login-tab">
+        <form class="login-form" id="loginForm">
+          <div class="form-group">
+            <label class="form-label">Felhasználónév vagy Email</label>
+            <input type="text" id="loginUsername" class="form-input" placeholder="felhasznalo@email.com" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Jelszó</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+          </div>
+          
+          <div id="loginError" class="error-message"></div>
+          
+          <button type="submit" class="btn-primary">Bejelentkezés</button>
+        </form>
+        
+        <div class="divider">vagy</div>
+        
+        <a href="/auth/google" class="google-btn">
+          <svg viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Bejelentkezés Google-lel
+        </a>
       </div>
-      
-      <div class="form-group">
-        <label for="password">Jelszó:</label>
-        <input type="password" id="password" name="password" required autocomplete="current-password">
+
+      <!-- Register Tab -->
+      <div class="tab-content" id="register-tab">
+        <form class="login-form" id="registerForm">
+          <div class="form-group">
+            <label class="form-label">Felhasználónév</label>
+            <input type="text" id="regUsername" class="form-input" placeholder="felhasznalonev" required minlength="3">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="email@example.com" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Jelszó</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="••••••••" required minlength="6">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Jelszó megerősítése</label>
+            <input type="password" id="regConfirmPassword" class="form-input" placeholder="••••••••" required>
+          </div>
+          
+          <div id="registerError" class="error-message"></div>
+          <div id="registerSuccess" class="success-message"></div>
+          
+          <button type="submit" class="btn-primary">Regisztráció</button>
+        </form>
+        
+        <div class="divider">vagy</div>
+        
+        <a href="/auth/google" class="google-btn">
+          <svg viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Regisztráció Google-lel
+        </a>
       </div>
-      
-      <button type="submit" class="login-button" id="loginButton">
-        Bejelentkezés
-      </button>
-      
-      <div class="error-message" id="errorMessage"></div>
-      <div class="success-message" id="successMessage"></div>
-    </form>
-    
-    <!-- Register Form (hidden by default) -->
-    <form class="login-form" id="registerForm" style="display: none;">
-      <div class="form-group">
-        <label for="regUsername">Felhasználónév:</label>
-        <input type="text" id="regUsername" name="regUsername" required autocomplete="username" minlength="3">
-      </div>
-      
-      <div class="form-group">
-        <label for="regEmail">Email cím:</label>
-        <input type="email" id="regEmail" name="regEmail" required autocomplete="email">
-      </div>
-      
-      <div class="form-group">
-        <label for="regPassword">Jelszó:</label>
-        <input type="password" id="regPassword" name="regPassword" required autocomplete="new-password" minlength="6">
-      </div>
-      
-      <div class="form-group">
-        <label for="regConfirmPassword">Jelszó megerősítése:</label>
-        <input type="password" id="regConfirmPassword" name="regConfirmPassword" required autocomplete="new-password">
-      </div>
-      
-      <button type="submit" class="login-button" id="registerButton">
-        Regisztráció
-      </button>
-      
-      <div class="error-message" id="regErrorMessage"></div>
-      <div class="success-message" id="regSuccessMessage"></div>
-    </form>
-    </div>
-    
-    <div class="footer-text">
-      © 2025 Logi Credit. Minden jog fenntartva.
+
+      <p class="footer-text">
+        © 2025 Logi Credit. Minden jog fenntartva.
+      </p>
     </div>
   </div>
 
+  <script src="theme.js"></script>
   <script>
-    // Admin credentials
-    const ADMIN_CREDENTIALS = {
-      username: 'admin',
-      password: 'admin123'
-    };
-    
-    // Tab switching functionality
-    const loginTab = document.getElementById('loginTab');
-    const registerTab = document.getElementById('registerTab');
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const formTitle = document.getElementById('formTitle');
-    const googleBtnText = document.getElementById('googleBtnText');
-    
-    function switchToLogin() {
-      loginTab.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-      loginTab.style.color = 'white';
-      registerTab.style.background = '#f7fafc';
-      registerTab.style.color = '#718096';
-      loginForm.style.display = 'flex';
-      registerForm.style.display = 'none';
-      formTitle.textContent = 'Jelentkezz be a folytatáshoz';
-      googleBtnText.textContent = 'Bejelentkezés Google-lal';
-      // Clear messages
-      document.getElementById('errorMessage').style.display = 'none';
-      document.getElementById('successMessage').style.display = 'none';
-    }
-    
-    function switchToRegister() {
-      registerTab.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-      registerTab.style.color = 'white';
-      loginTab.style.background = '#f7fafc';
-      loginTab.style.color = '#718096';
-      registerForm.style.display = 'flex';
-      loginForm.style.display = 'none';
-      formTitle.textContent = 'Hozz létre egy fiókot';
-      googleBtnText.textContent = 'Regisztráció Google-lal';
-      // Clear messages
-      document.getElementById('regErrorMessage').style.display = 'none';
-      document.getElementById('regSuccessMessage').style.display = 'none';
-    }
-    
-    loginTab.addEventListener('click', switchToLogin);
-    registerTab.addEventListener('click', switchToRegister);
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        btn.classList.add('active');
+        document.getElementById(tabId + '-tab').classList.add('active');
+      });
+    });
 
-    // Google Login Button Handler
-    document.getElementById('googleLoginButton').addEventListener('click', async function() {
-      const button = this;
-      button.disabled = true;
-      googleBtnText.textContent = 'Átirányítás...';
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      
+      errorEl.classList.remove('show');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Bejelentkezés...';
       
       try {
-        const response = await fetch('/api/auth/google/url');
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
         const data = await response.json();
         
-        if (data.success && data.url) {
-          // Redirect to Google OAuth
-          window.location.href = data.url;
+        if (data.success && data.token) {
+          localStorage.setItem('authToken', data.token);
+          if (data.user) {
+            localStorage.setItem('userName', data.user.name || data.user.username);
+          }
+          localStorage.setItem('loginTime', Date.now().toString());
+          window.location.href = '/home/';
         } else {
-          throw new Error('Nem sikerült lekérni a Google bejelentkezési URL-t');
+          errorEl.textContent = data.message || 'Hibás felhasználónév vagy jelszó';
+          errorEl.classList.add('show');
         }
       } catch (error) {
-        alert('Google bejelentkezési hiba: ' + error.message);
-        button.disabled = false;
-        googleBtnText.textContent = registerForm.style.display === 'none' ? 'Bejelentkezés Google-lal' : 'Regisztráció Google-lal';
+        errorEl.textContent = 'Hálózati hiba történt';
+        errorEl.classList.add('show');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Bejelentkezés';
       }
     });
-    
-    // Register Form Handler
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+
+    // Register form
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const username = document.getElementById('regUsername').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value;
       const confirmPassword = document.getElementById('regConfirmPassword').value;
-      const errorMessage = document.getElementById('regErrorMessage');
-      const successMessage = document.getElementById('regSuccessMessage');
-      const registerButton = document.getElementById('registerButton');
       
-      // Hide previous messages
-      errorMessage.style.display = 'none';
-      successMessage.style.display = 'none';
+      const errorEl = document.getElementById('registerError');
+      const successEl = document.getElementById('registerSuccess');
+      const submitBtn = e.target.querySelector('button[type="submit"]');
       
-      // Client-side validation
+      errorEl.classList.remove('show');
+      successEl.classList.remove('show');
+      
       if (password !== confirmPassword) {
-        errorMessage.textContent = 'A jelszavak nem egyeznek!';
-        errorMessage.style.display = 'block';
+        errorEl.textContent = 'A jelszavak nem egyeznek';
+        errorEl.classList.add('show');
         return;
       }
       
-      if (password.length < 6) {
-        errorMessage.textContent = 'A jelszó legalább 6 karakter hosszú legyen!';
-        errorMessage.style.display = 'block';
-        return;
-      }
-      
-      // Disable button during registration
-      registerButton.disabled = true;
-      registerButton.textContent = 'Regisztráció...';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Regisztráció...';
       
       try {
         const response = await fetch('/api/register', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, email, password, confirmPassword })
         });
         
         const data = await response.json();
         
         if (data.success) {
-          successMessage.textContent = data.message;
-          successMessage.style.display = 'block';
+          successEl.textContent = 'Sikeres regisztráció! Most már bejelentkezhetsz.';
+          successEl.classList.add('show');
+          e.target.reset();
           
-          // Clear form
-          document.getElementById('registerForm').reset();
-          
-          // Switch to login after 2 seconds
+          // Switch to login tab after 2s
           setTimeout(() => {
-            switchToLogin();
+            document.querySelector('[data-tab="login"]').click();
           }, 2000);
         } else {
-          throw new Error(data.message || 'Regisztrációs hiba');
+          errorEl.textContent = data.message || 'Hiba történt a regisztráció során';
+          errorEl.classList.add('show');
         }
       } catch (error) {
-        errorMessage.textContent = error.message || 'Hálózati hiba történt!';
-        errorMessage.style.display = 'block';
+        errorEl.textContent = 'Hálózati hiba történt';
+        errorEl.classList.add('show');
       } finally {
-        registerButton.disabled = false;
-        registerButton.textContent = 'Regisztráció';
-      }
-    });
-
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const errorMessage = document.getElementById('errorMessage');
-      const successMessage = document.getElementById('successMessage');
-      const loginButton = document.getElementById('loginButton');
-      
-      // Hide previous messages
-      errorMessage.style.display = 'none';
-      successMessage.style.display = 'none';
-      
-      // Disable button during login
-      loginButton.disabled = true;
-      loginButton.textContent = 'Bejelentkezés...';
-      
-      try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, password })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          // Set authentication token
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('userName', data.user.username);
-          localStorage.setItem('userRole', data.user.role);
-          localStorage.setItem('loginTime', new Date().toISOString());
-          
-          successMessage.textContent = 'Sikeres bejelentkezés! Átirányítás...';
-          successMessage.style.display = 'block';
-          
-          // Redirect to home page (absolute path)
-          setTimeout(() => {
-            window.location.href = '/home/';
-          }, 1000);
-        } else {
-          throw new Error(data.message || 'Bejelentkezési hiba');
-        }
-      } catch (error) {
-        errorMessage.textContent = error.message || 'Hálózati hiba történt!';
-        errorMessage.style.display = 'block';
-        
-        loginButton.disabled = false;
-        loginButton.textContent = 'Bejelentkezés';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Regisztráció';
       }
     });
 
     // Check if already logged in
     const token = localStorage.getItem('authToken');
-    if (token && (token === 'authenticated' || token.startsWith('google_auth_') || token.startsWith('authenticated_'))) {
+    if (token) {
       window.location.href = '/home/';
-    }
-    
-    // Check for Google auth callback with token in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const googleAuthToken = urlParams.get('token');
-    if (googleAuthToken) {
-      localStorage.setItem('authToken', googleAuthToken);
-      window.location.href = '/home/';
-    }
-    
-    // Check for errors
-    const error = urlParams.get('error');
-    if (error) {
-      const errorMessage = document.getElementById('errorMessage');
-      errorMessage.textContent = 'Hiba történt a bejelentkezés során: ' + error;
-      errorMessage.style.display = 'block';
     }
   </script>
-  <script src="app.js"></script>
 </body>
 </html>

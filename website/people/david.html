@@ -1,80 +1,141 @@
 <!doctype html>
-<html lang="en">
+<html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>david - Logi Credit Auth</title>
-  <link rel="stylesheet" href="../styles.css">
+  <title>Auth - Logi Credit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../theme.css">
 </head>
 <body>
-  <div class="container">
-    <h1>David - Autentikáció</h1>
-    <p>Role: Authentication & Authorization</p>
+  <header class="header">
+    <div class="header-left">
+      <img src="../1000013760.png" alt="Logo">
+      <span>Logi Credit</span>
+    </div>
+    <nav class="header-nav">
+      <a href="../home/">Dashboard</a>
+      <a href="david.html" class="active">Auth</a>
+      <a href="pali.html">Analytics</a>
+      <a href="kristof.html">Utalás</a>
+      <button class="theme-toggle" title="Téma váltás">🌙</button>
+      <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
+    </nav>
+  </header>
 
-    <section>
-      <h2>✅ Implementált autentikációs rendszer</h2>
-      <div class="card" style="background: #f0fdf4; border: 1px solid #16a34a; border-radius: 6px; padding: 16px;">
-        <h3 style="color: #16a34a; margin-top: 0;">Működő funkciók:</h3>
-        <ul>
-          <li>🔐 Admin bejelentkezés (admin/admin123)</li>
-          <li>🏠 Védett dashboard oldal (/home/)</li>
-          <li>🔄 Automatikus átirányítás login oldalra</li>
-          <li>🚪 Kijelentkezés funkció</li>
-          <li>💾 LocalStorage alapú session kezelés</li>
-          <li>🔒 API végpontok védelme</li>
-        </ul>
-      </div>
-    </section>
+  <main class="main-container">
+    <!-- Balance Card -->
+    <div class="balance-card">
+      <div class="balance-label">🔐 Autentikáció & Biztonság</div>
+      <div class="balance-amount" style="font-size:32px;">David</div>
+      <div class="balance-currency">Authentication & Authorization</div>
+    </div>
 
-    <section>
-      <h2>API Végpontok</h2>
-      <div class="card">
-        <h4>POST /api/login</h4>
-        <pre><code>{
+    <!-- Features Card -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">✅</span>
+        Implementált funkciók
+      </h2>
+      
+      <ul class="info-list">
+        <li><span class="emoji">🔐</span> Admin bejelentkezés (admin/admin123)</li>
+        <li><span class="emoji">📝</span> Felhasználó regisztráció</li>
+        <li><span class="emoji">🏠</span> Védett dashboard oldal</li>
+        <li><span class="emoji">🔄</span> Automatikus átirányítás login oldalra</li>
+        <li><span class="emoji">🚪</span> Kijelentkezés funkció</li>
+        <li><span class="emoji">💾</span> LocalStorage alapú session kezelés</li>
+        <li><span class="emoji">🔒</span> API végpontok védelme</li>
+        <li><span class="emoji">🌐</span> Google OAuth bejelentkezés</li>
+      </ul>
+    </div>
+
+    <!-- API Endpoints -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🔌</span>
+        API Végpontok
+      </h2>
+      
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">POST /api/login</div>
+        <div class="code-block">
+{
   "username": "admin",
   "password": "admin123"
-}</code></pre>
-        
-        <h4>GET /api/user (védett)</h4>
-        <p>Authorization: Bearer {token}</p>
-        
-        <h4>POST /api/logout</h4>
-        <p>Kijelentkezés</p>
+}
+        </div>
       </div>
-    </section>
+      
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">POST /api/register</div>
+        <div class="code-block">
+{
+  "username": "felhasznalo",
+  "email": "email@example.com",
+  "password": "jelszo123"
+}
+        </div>
+      </div>
+      
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">GET /api/user/me (védett)</div>
+        <div class="code-block">Authorization: Bearer {token}</div>
+      </div>
+      
+      <div>
+        <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);">POST /api/logout</div>
+        <div class="code-block">Kijelentkezés és token törlése</div>
+      </div>
+    </div>
 
-    <section>
-      <h2>Biztonsági megfontolások</h2>
-      <ul>
-        <li>Jelszavak hash-elése (PBKDF2-HMAC SHA256 - auth.py-ban)</li>
-        <li>Rate limiting bejelentkezési kísérleteknél</li>
-        <li>HTTPS használata production környezetben</li>
-        <li>Secure cookie flags beállítása</li>
-        <li>CSRF védelem implementálása</li>
-        <li>Token lejárati idő beállítása</li>
+    <!-- Security -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🛡️</span>
+        Biztonsági megfontolások
+      </h2>
+      
+      <ul class="info-list">
+        <li><span class="emoji">🔑</span> Jelszavak hash-elése (bcrypt)</li>
+        <li><span class="emoji">⏱️</span> Rate limiting bejelentkezési kísérleteknél</li>
+        <li><span class="emoji">🔒</span> HTTPS használata production környezetben</li>
+        <li><span class="emoji">🍪</span> Secure cookie flags beállítása</li>
+        <li><span class="emoji">🛡️</span> CSRF védelem implementálása</li>
+        <li><span class="emoji">⏰</span> Token lejárati idő beállítása</li>
       </ul>
-    </section>
+    </div>
 
-    <section>
-      <h2>Következő lépések</h2>
-      <ol>
-        <li>Adatbázis integráció a memóriában tárolt adatok helyett</li>
-        <li>Többfaktoros autentikáció (MFA) implementálása</li>
-        <li>Role-based access control (RBAC) finomhangolása</li>
-        <li>Audit log kibővítése</li>
-        <li>JWT token használata refresh tokenekkel</li>
-        <li>Környezeti változók használata credentials-hez</li>
-      </ol>
-    </section>
+    <!-- Next Steps -->
+    <div class="card">
+      <h2 class="section-title">
+        <span class="icon">🚀</span>
+        Következő lépések
+      </h2>
+      
+      <ul class="info-list">
+        <li><span class="emoji">1️⃣</span> Többfaktoros autentikáció (MFA) implementálása</li>
+        <li><span class="emoji">2️⃣</span> Role-based access control (RBAC) finomhangolása</li>
+        <li><span class="emoji">3️⃣</span> Audit log kibővítése</li>
+        <li><span class="emoji">4️⃣</span> JWT token használata refresh tokenekkel</li>
+        <li><span class="emoji">5️⃣</span> Biometrikus bejelentkezés támogatása</li>
+      </ul>
+    </div>
+  </main>
 
-    <p><a href="../home/">Vissza a dashboard-ra</a></p>
-  </div>
+  <script src="../theme.js"></script>
   <script src="../app.js"></script>
   <script>
-    document.getElementById('login')?.addEventListener('submit', e=>{
-      e.preventDefault()
-      document.getElementById('login-result').textContent='This is a mock login — implement real auth in backend.'
-    })
+    function logout() {
+      if (confirm('Biztosan ki szeretnél jelentkezni?')) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('loginTime');
+        window.location.href = '../login.html';
+      }
+    }
   </script>
 </body>
 </html>

@@ -7,202 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../theme.css">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0d0d0d;
-      color: #ffffff;
-      min-height: 100vh;
-    }
-    
-    /* Header */
-    .header {
-      background: #1a1a1a;
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #2a2a2a;
-    }
-    
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .header-left img {
-      height: 36px;
-    }
-    
-    .header-left span {
-      font-size: 20px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .header-nav {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    
-    .header-nav a {
-      color: #888;
-      text-decoration: none;
-      padding: 10px 16px;
-      border-radius: 24px;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    
-    .header-nav a:hover {
-      background: #2a2a2a;
-      color: #fff;
-    }
-    
-    .header-nav a.active {
-      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
-      color: #fff;
-    }
-    
-    .logout-btn {
-      background: rgba(239, 68, 68, 0.15);
-      color: #ef4444;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 24px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    
-    .logout-btn:hover {
-      background: #ef4444;
-      color: #fff;
-    }
-    
-    /* Main Container */
-    .main-container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 40px 24px;
-    }
-    
-    /* Balance Card */
-    .balance-card {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border-radius: 24px;
-      padding: 32px;
-      margin-bottom: 32px;
-      text-align: center;
-      border: 1px solid #2a2a4a;
-    }
-    
-    .balance-label {
-      color: #888;
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-    
-    .balance-amount {
-      font-size: 48px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
-    }
-    
-    .balance-currency {
-      color: #666;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    
-    /* Transfer Section */
-    .transfer-section {
-      background: #1a1a1a;
-      border-radius: 24px;
-      padding: 32px;
-      margin-bottom: 32px;
-      border: 1px solid #2a2a2a;
-    }
-    
-    .section-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .section-title .icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-    
-    /* Form Styles */
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    .form-label {
-      display: block;
-      color: #888;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-    
-    .form-input {
-      width: 100%;
-      background: #0d0d0d;
-      border: 2px solid #2a2a2a;
-      border-radius: 16px;
-      padding: 16px 20px;
-      color: #fff;
-      font-size: 16px;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-    
-    .form-input:hover {
-      border-color: #3a3a3a;
-    }
-    
-    .form-input:focus {
-      outline: none;
-      border-color: #00d4aa;
-      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.1);
-    }
-    
-    .form-input::placeholder {
-      color: #555;
-    }
-    
-    /* Amount Input Special */
+    /* Page-specific styles */
     .amount-input-wrapper {
       position: relative;
     }
@@ -211,7 +18,7 @@
       font-size: 32px;
       font-weight: 700;
       text-align: center;
-      padding: 24px 20px;
+      padding: 24px 60px 24px 20px;
     }
     
     .amount-currency {
@@ -219,73 +26,34 @@
       right: 20px;
       top: 50%;
       transform: translateY(-50%);
-      color: #666;
+      color: var(--text-muted);
       font-size: 18px;
       font-weight: 600;
     }
     
-    /* Submit Button */
-    .submit-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
-      border: none;
-      border-radius: 16px;
-      padding: 18px 32px;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-family: inherit;
-      margin-top: 8px;
+    .quick-amounts {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
     }
     
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 212, 170, 0.3);
-    }
-    
-    .submit-btn:active {
-      transform: translateY(0);
-    }
-    
-    .submit-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    /* Message */
-    .transfer-msg {
-      padding: 16px 20px;
-      border-radius: 16px;
+    .quick-amount-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 20px;
+      padding: 8px 16px;
+      color: var(--text-muted);
       font-size: 14px;
       font-weight: 600;
-      margin-top: 16px;
-      display: none;
-      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
     }
     
-    .transfer-msg.success {
-      display: block;
-      background: rgba(0, 212, 170, 0.15);
-      color: #00d4aa;
-      border: 1px solid rgba(0, 212, 170, 0.3);
-    }
-    
-    .transfer-msg.error {
-      display: block;
-      background: rgba(239, 68, 68, 0.15);
-      color: #ef4444;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-    
-    /* Transactions List */
-    .transactions-section {
-      background: #1a1a1a;
-      border-radius: 24px;
-      padding: 32px;
-      border: 1px solid #2a2a2a;
+    .quick-amount-btn:hover {
+      background: var(--border-secondary);
+      color: var(--text-primary);
     }
     
     .transaction-list {
@@ -296,7 +64,7 @@
       display: flex;
       align-items: center;
       padding: 16px 0;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid var(--border-primary);
       transition: all 0.2s;
     }
     
@@ -304,18 +72,11 @@
       border-bottom: none;
     }
     
-    .transaction-item:hover {
-      background: rgba(255,255,255,0.02);
-      margin: 0 -16px;
-      padding: 16px;
-      border-radius: 12px;
-    }
-    
     .transaction-avatar {
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--accent-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -335,17 +96,12 @@
       font-weight: 600;
       font-size: 15px;
       margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      color: var(--text-primary);
     }
     
     .transaction-meta {
-      color: #666;
+      color: var(--text-muted);
       font-size: 13px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
     }
     
     .transaction-amount {
@@ -355,17 +111,17 @@
     }
     
     .transaction-amount.incoming {
-      color: #00d4aa;
+      color: var(--success);
     }
     
     .transaction-amount.outgoing {
-      color: #ef4444;
+      color: var(--error);
     }
     
     .empty-state {
       text-align: center;
       padding: 48px 24px;
-      color: #666;
+      color: var(--text-muted);
     }
     
     .empty-state .icon {
@@ -373,51 +129,101 @@
       margin-bottom: 16px;
     }
     
-    /* Quick Amount Buttons */
-    .quick-amounts {
+    .transfer-msg {
+      display: none;
+    }
+    
+    .transfer-msg.success,
+    .transfer-msg.error {
+      display: block;
+    }
+    
+    /* Autocomplete styles */
+    .autocomplete-wrapper {
+      position: relative;
+    }
+    
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-primary);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 4px;
+      display: none;
+    }
+    
+    .autocomplete-list.show {
+      display: block;
+    }
+    
+    .autocomplete-item {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-    
-    .quick-amount-btn {
-      background: #2a2a2a;
-      border: none;
-      border-radius: 20px;
-      padding: 8px 16px;
-      color: #888;
-      font-size: 14px;
-      font-weight: 600;
+      align-items: center;
+      padding: 12px 16px;
       cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
+      transition: background 0.15s;
     }
     
-    .quick-amount-btn:hover {
-      background: #3a3a3a;
+    .autocomplete-item:hover,
+    .autocomplete-item.selected {
+      background: var(--bg-tertiary);
+    }
+    
+    .autocomplete-item:first-child {
+      border-radius: 12px 12px 0 0;
+    }
+    
+    .autocomplete-item:last-child {
+      border-radius: 0 0 12px 12px;
+    }
+    
+    .autocomplete-item:only-child {
+      border-radius: 12px;
+    }
+    
+    .autocomplete-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
       color: #fff;
+      margin-right: 12px;
+      flex-shrink: 0;
     }
     
-    /* Responsive */
-    @media (max-width: 640px) {
-      .header {
-        flex-direction: column;
-        gap: 16px;
-      }
-      
-      .header-nav {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      
-      .balance-amount {
-        font-size: 36px;
-      }
-      
-      .amount-input {
-        font-size: 24px;
-      }
+    .autocomplete-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .autocomplete-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    
+    .autocomplete-email {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .autocomplete-empty {
+      padding: 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
     }
   </style>
 </head>
@@ -432,11 +238,12 @@
       <a href="david.html">Auth</a>
       <a href="pali.html">Analytics</a>
       <a href="kristof.html" class="active">Utalás</a>
+      <button class="theme-toggle" title="Téma váltás">🌙</button>
       <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
     </nav>
   </header>
 
-  <main class="main-container">
+  <main class="main-container narrow">
     <!-- Balance Card -->
     <div class="balance-card">
       <div class="balance-label">Elérhető egyenleg</div>
@@ -445,7 +252,7 @@
     </div>
 
     <!-- Transfer Section -->
-    <div class="transfer-section">
+    <div class="card">
       <h2 class="section-title">
         <span class="icon">💸</span>
         Pénz küldése
@@ -454,14 +261,17 @@
       <form id="transferForm">
         <div class="form-group">
           <label class="form-label">Címzett</label>
-          <input 
-            type="text" 
-            id="toUser" 
-            class="form-input" 
-            required 
-            placeholder="Felhasználónév vagy email"
-            autocomplete="off"
-          />
+          <div class="autocomplete-wrapper">
+            <input 
+              type="text" 
+              id="toUser" 
+              class="form-input" 
+              required 
+              placeholder="Kezdj el gépelni..."
+              autocomplete="off"
+            />
+            <div class="autocomplete-list" id="autocompleteList"></div>
+          </div>
         </div>
         
         <div class="form-group">
@@ -497,16 +307,16 @@
           />
         </div>
         
-        <button type="submit" id="sendBtn" class="submit-btn">
+        <button type="submit" id="sendBtn" class="btn-primary">
           Küldés
         </button>
         
-        <div id="transferMsg" class="transfer-msg"></div>
+        <div id="transferMsg" class="message transfer-msg"></div>
       </form>
     </div>
 
     <!-- Transactions Section -->
-    <div class="transactions-section">
+    <div class="card">
       <h2 class="section-title">
         <span class="icon">📋</span>
         Tranzakciók
@@ -518,9 +328,12 @@
     </div>
   </main>
 
+  <script src="../theme.js"></script>
   <script src="../app.js"></script>
   <script>
     let currentUsername = '';
+    let allUsers = [];
+    let selectedIndex = -1;
 
     function logout() {
       if (confirm('Biztosan ki szeretnél jelentkezni?')) {
@@ -553,6 +366,84 @@
         }
       } catch (error) {
         console.error('Failed to load balance:', error);
+      }
+    }
+
+    async function loadAllUsers() {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        const response = await fetch('/api/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.users) {
+            // Filter out current user
+            allUsers = data.users.filter(u => 
+              (u.username || u.email) !== currentUsername
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      }
+    }
+
+    function showAutocomplete(query) {
+      const listEl = document.getElementById('autocompleteList');
+      if (!listEl) return;
+
+      if (!query || query.length < 1) {
+        listEl.classList.remove('show');
+        return;
+      }
+
+      const lowerQuery = query.toLowerCase();
+      const matches = allUsers.filter(u => {
+        const username = (u.username || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const name = (u.name || '').toLowerCase();
+        return username.includes(lowerQuery) || 
+               email.includes(lowerQuery) || 
+               name.includes(lowerQuery);
+      }).slice(0, 5);
+
+      if (matches.length === 0) {
+        listEl.innerHTML = '<div class="autocomplete-empty">Nincs találat</div>';
+        listEl.classList.add('show');
+        selectedIndex = -1;
+        return;
+      }
+
+      listEl.innerHTML = matches.map((user, index) => {
+        const displayName = user.name || user.username || user.email;
+        const initial = displayName.charAt(0).toUpperCase();
+        const email = user.email || '';
+        return `
+          <div class="autocomplete-item" data-username="${user.username || user.email}" data-index="${index}">
+            <div class="autocomplete-avatar">${initial}</div>
+            <div class="autocomplete-info">
+              <div class="autocomplete-name">${displayName}</div>
+              ${email ? `<div class="autocomplete-email">${email}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      listEl.classList.add('show');
+      selectedIndex = -1;
+    }
+
+    function selectAutocompleteItem(item) {
+      const input = document.getElementById('toUser');
+      const listEl = document.getElementById('autocompleteList');
+      if (item && input) {
+        input.value = item.dataset.username;
+        listEl.classList.remove('show');
+        document.getElementById('amount').focus();
       }
     }
 
@@ -623,7 +514,7 @@
               <div class="transaction-name">${isOutgoing ? 'Küldve: ' : 'Fogadva: '}${partnerName}</div>
               <div class="transaction-meta">
                 <span>${txDate}</span>
-                ${tx.note ? `<span>• ${tx.note}</span>` : ''}
+                ${tx.note ? ` • ${tx.note}` : ''}
               </div>
             </div>
             <div class="transaction-amount ${amountClass}">
@@ -653,7 +544,55 @@
     // Form submission
     document.addEventListener('DOMContentLoaded', () => {
       loadTransactions();
-      loadUserBalance();
+      loadUserBalance().then(() => loadAllUsers());
+      
+      // Autocomplete logic
+      const toUserInput = document.getElementById('toUser');
+      const autocompleteList = document.getElementById('autocompleteList');
+      
+      toUserInput?.addEventListener('input', (e) => {
+        showAutocomplete(e.target.value);
+      });
+      
+      toUserInput?.addEventListener('focus', () => {
+        if (toUserInput.value) {
+          showAutocomplete(toUserInput.value);
+        }
+      });
+      
+      toUserInput?.addEventListener('keydown', (e) => {
+        const items = autocompleteList?.querySelectorAll('.autocomplete-item');
+        if (!items || items.length === 0) return;
+        
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+          items.forEach((item, i) => item.classList.toggle('selected', i === selectedIndex));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedIndex = Math.max(selectedIndex - 1, 0);
+          items.forEach((item, i) => item.classList.toggle('selected', i === selectedIndex));
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+          e.preventDefault();
+          selectAutocompleteItem(items[selectedIndex]);
+        } else if (e.key === 'Escape') {
+          autocompleteList.classList.remove('show');
+        }
+      });
+      
+      autocompleteList?.addEventListener('click', (e) => {
+        const item = e.target.closest('.autocomplete-item');
+        if (item) {
+          selectAutocompleteItem(item);
+        }
+      });
+      
+      // Hide autocomplete when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.autocomplete-wrapper')) {
+          autocompleteList?.classList.remove('show');
+        }
+      });
       
       const form = document.getElementById('transferForm');
       const msgEl = document.getElementById('transferMsg');
@@ -665,7 +604,7 @@
         const token = localStorage.getItem('authToken');
         if (!token) {
           msgEl.textContent = '⚠️ Bejelentkezés szükséges';
-          msgEl.className = 'transfer-msg error';
+          msgEl.className = 'message error transfer-msg';
           return;
         }
 
@@ -675,7 +614,7 @@
 
         if (!toUser || amount < 1) {
           msgEl.textContent = '⚠️ Töltsd ki az összes mezőt helyesen';
-          msgEl.className = 'transfer-msg error';
+          msgEl.className = 'message error transfer-msg';
           return;
         }
 
@@ -696,24 +635,23 @@
 
           if (data.success) {
             msgEl.textContent = `✅ ${data.message || 'Sikeres utalás!'}`;
-            msgEl.className = 'transfer-msg success';
+            msgEl.className = 'message success transfer-msg';
             form.reset();
             
-            // Reload data
             await loadUserBalance();
             await loadTransactions();
             
             setTimeout(() => {
-              msgEl.style.display = 'none';
+              msgEl.className = 'message transfer-msg';
             }, 3000);
           } else {
             msgEl.textContent = `❌ ${data.message || 'Hiba történt'}`;
-            msgEl.className = 'transfer-msg error';
+            msgEl.className = 'message error transfer-msg';
           }
         } catch (err) {
           console.error('Transfer error:', err);
           msgEl.textContent = '❌ Hálózati hiba történt';
-          msgEl.className = 'transfer-msg error';
+          msgEl.className = 'message error transfer-msg';
         } finally {
           sendBtn.disabled = false;
           sendBtn.textContent = 'Küldés';

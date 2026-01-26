@@ -4,405 +4,243 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard - Logi Credit</title>
-  <link rel="stylesheet" href="../styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../theme.css">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
-    }
-    
-    header {
-      background: white;
-      border-bottom: 1px solid #e9ecef;
-      padding: 20px 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-    
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    
-    .header-title .logo {
-      height: 50px;
-      margin: 0;
-    }
-    
-    .header-title-text h1 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1a202c;
-      margin: 0 0 4px 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .header-title-text p {
-      margin: 0;
-      color: #718096;
-      font-size: 14px;
-    }
-    
-    nav {
-      display: flex;
-      gap: 24px;
-      align-items: center;
-    }
-    
-    nav a {
-      color: #4a5568;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 14px;
-      padding: 8px 16px;
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-    
-    nav a:hover {
-      background: #f7fafc;
-      color: #667eea;
-    }
-    
-    nav a.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-    
-    .logout-btn {
-      background: #fee;
-      color: #c53030;
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    
-    .logout-btn:hover {
-      background: #fc8181;
-      color: white;
-    }
-    
-    main {
-      padding: 32px 0;
-    }
-    
-    .welcome-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+    .welcome-card {
+      background: var(--accent-gradient);
+      border-radius: 24px;
       padding: 40px;
-      border-radius: 16px;
       margin-bottom: 32px;
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      color: #fff;
+      text-align: center;
     }
     
-    .welcome-section h2 {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0 0 8px 0;
+    .welcome-card h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
     }
     
-    .welcome-section p {
-      margin: 0;
-      opacity: 0.95;
+    .welcome-card p {
+      opacity: 0.9;
+      font-size: 16px;
+    }
+    
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    
+    .quick-action {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 16px;
+      padding: 20px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
       font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    
+    .quick-action:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
+    }
+    
+    .quick-action .icon {
+      font-size: 24px;
     }
     
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
       gap: 24px;
-      margin-bottom: 32px;
     }
     
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #e9ecef;
-      transition: all 0.2s;
-    }
-    
-    .card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      transform: translateY(-2px);
-    }
-    
-    .card h3 {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1a202c;
-      margin: 0 0 8px 0;
-    }
-    
-    .card .muted {
-      color: #718096;
-      font-size: 14px;
-      margin: 0 0 20px 0;
-    }
-    
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-    }
-    
-    .data-table thead {
-      background: #f7fafc;
-      border-radius: 8px;
-    }
-    
-    .data-table th {
-      padding: 12px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 13px;
-      color: #4a5568;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .data-table td {
-      padding: 12px;
-      border-bottom: 1px solid #e9ecef;
-      font-size: 14px;
-      color: #2d3748;
-    }
-    
-    .data-table tbody tr:hover {
-      background: #f7fafc;
-    }
-    
-    .data-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-    
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    
-    .status-ok {
-      background: #c6f6d5;
-      color: #22543d;
-    }
-    
-    .status-pending {
-      background: #feebc8;
-      color: #744210;
-    }
-    
-    .status-failed {
-      background: #fed7d7;
-      color: #742a2a;
-    }
-    
-    .chart-placeholder {
-      height: 200px;
-      background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
-      border-radius: 8px;
+    .chart-container {
+      height: 250px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #a0aec0;
-      font-weight: 500;
+      background: var(--bg-tertiary);
+      border-radius: 16px;
       margin-top: 16px;
     }
     
-    .analytics-summary {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin: 20px 0;
+    .transaction-mini {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-primary);
     }
     
-    .summary-item {
+    .transaction-mini:last-child {
+      border-bottom: none;
+    }
+    
+    .transaction-mini .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #fff;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .transaction-mini .details {
+      flex: 1;
+    }
+    
+    .transaction-mini .name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    
+    .transaction-mini .date {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .transaction-mini .amount {
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    .transaction-mini .amount.positive {
+      color: var(--success);
+    }
+    
+    .transaction-mini .amount.negative {
+      color: var(--error);
+    }
+    
+    .view-all-link {
+      display: block;
       text-align: center;
       padding: 16px;
-      background: #f7fafc;
-      border-radius: 8px;
-    }
-    
-    .summary-label {
-      display: block;
-      font-size: 12px;
-      color: #718096;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
+      color: var(--accent-primary);
+      text-decoration: none;
       font-weight: 600;
+      font-size: 14px;
+      margin-top: 8px;
+      border-radius: 12px;
+      transition: all 0.2s;
     }
     
-    .summary-value {
-      display: block;
-      font-size: 24px;
-      font-weight: 700;
-      color: #1a202c;
-    }
-    
-    @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      nav {
-        flex-wrap: wrap;
-      }
-      
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .analytics-summary {
-        grid-template-columns: 1fr;
-      }
+    .view-all-link:hover {
+      background: var(--bg-tertiary);
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <div class="header-content">
-        <div class="header-title">
-          <img src="../1000013760.png" alt="Logi Credit Logo" class="logo">
-          <div class="header-title-text">
-            <h1>Logi Credit</h1>
-            <p>Dashboard</p>
-          </div>
-        </div>
-        <nav>
-          <a href="../home/" class="active">Dashboard</a>
-          <a href="../people/david.html">Auth</a>
-          <a href="../people/pali.html">Analytics</a>
-          <a href="../people/kristof.html">Tranzakciók</a>
-          <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
-        </nav>
-      </div>
+  <header class="header">
+    <div class="header-left">
+      <img src="../1000013760.png" alt="Logo">
+      <span>Logi Credit</span>
     </div>
+    <nav class="header-nav">
+      <a href="../home/" class="active">Dashboard</a>
+      <a href="../people/david.html">Auth</a>
+      <a href="../people/pali.html">Analytics</a>
+      <a href="../people/kristof.html">Utalás</a>
+      <button class="theme-toggle" title="Téma váltás">🌙</button>
+      <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
+    </nav>
   </header>
 
-  <main class="container">
-    <div class="welcome-section">
-      <h2>Üdvözöljük, <span id="user-name">Felhasználó</span>!</h2>
-      <p style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <span>Egyenleg: <strong id="user-balance">0</strong> HUF</span>
-      </p>
+  <main class="main-container">
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+      <h1>Üdvözöljük, <span id="user-name">Felhasználó</span>!</h1>
+      <p>Egyenleg: <strong id="user-balance">0</strong> HUF</p>
+      
+      <div class="quick-actions">
+        <a href="../people/kristof.html" class="quick-action">
+          <span class="icon">💸</span>
+          Új utalás
+        </a>
+        <a href="../people/pali.html" class="quick-action">
+          <span class="icon">📊</span>
+          Statisztikák
+        </a>
+        <a href="../people/david.html" class="quick-action">
+          <span class="icon">🔐</span>
+          Biztonság
+        </a>
+      </div>
     </div>
 
+    <!-- Dashboard Grid -->
     <div class="dashboard-grid">
+      <!-- Analytics Card -->
       <div class="card">
-        <h3>📊 Analytics</h3>
-        <p class="muted">Napi kifizetési forgalom az elmúlt 7 napban</p>
-        <div class="analytics-summary">
-          <div class="summary-item">
-            <span class="summary-label">Összes</span>
-            <span class="summary-value">€42.5K</span>
+        <h2 class="section-title">
+          <span class="icon">📊</span>
+          Heti összesítés
+        </h2>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Tranzakció</div>
           </div>
-          <div class="summary-item">
-            <span class="summary-label">Átlag</span>
-            <span class="summary-value">€6.1K</span>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-sent">0</div>
+            <div class="stat-label">Küldött</div>
           </div>
-          <div class="summary-item">
-            <span class="summary-label">Jóváhagyás</span>
-            <span class="summary-value">94%</span>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-received">0</div>
+            <div class="stat-label">Fogadott</div>
           </div>
         </div>
-        <div style="height:320px; margin-top:16px;">
-          <canvas id="volumeChart" aria-label="Analytics chart" role="img" style="width:100%;height:100%;"></canvas>
+        
+        <div class="chart-container">
+          <canvas id="volumeChart"></canvas>
         </div>
       </div>
 
+      <!-- Recent Transactions -->
       <div class="card">
-        <h3>💳 Legutóbbi tranzakciók</h3>
-        <p class="muted">Legutóbbi hitelezési döntések a scoring motorból</p>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Ügyfél</th>
-              <th>Dátum</th>
-              <th>Összeg</th>
-              <th>Státusz</th>
-            </tr>
-          </thead>
-          <tbody id="transaction-table-body">
-            <!-- Populated from ../data/transactions.json by dashboard.js -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>⚡ Gyors linkek</h3>
-      <p class="muted">Navigáció a főbb funkciókhoz</p>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px;">
-        <a href="../people/david.html" style="padding: 16px; background: #f7fafc; border-radius: 8px; text-decoration: none; color: #2d3748; font-weight: 600; transition: all 0.2s; display: block;">
-          🔐 Autentikáció
-        </a>
-        <a href="../people/pali.html" style="padding: 16px; background: #f7fafc; border-radius: 8px; text-decoration: none; color: #2d3748; font-weight: 600; transition: all 0.2s; display: block;">
-          📊 Analitika
-        </a>
-        <a href="../people/kristof.html" style="padding: 16px; background: #f7fafc; border-radius: 8px; text-decoration: none; color: #2d3748; font-weight: 600; transition: all 0.2s; display: block;">
-          💰 Tranzakciók
+        <h2 class="section-title">
+          <span class="icon">📋</span>
+          Legutóbbi tranzakciók
+        </h2>
+        
+        <div id="recent-transactions">
+          <div class="empty-state" style="text-align:center;padding:40px;color:var(--text-muted);">
+            <div style="font-size:40px;margin-bottom:12px;">📭</div>
+            <div>Még nincsenek tranzakciók</div>
+          </div>
+        </div>
+        
+        <a href="../people/kristof.html" class="view-all-link">
+          Összes tranzakció →
         </a>
       </div>
     </div>
-
   </main>
 
-  <footer style="background: white; border-top: 1px solid #e9ecef; padding: 20px 0; margin-top: 40px; text-align: center;">
-    <div class="container">
-      <p style="margin: 0; color: #718096; font-size: 14px;">© 2025 Logi Credit. Minden jog fenntartva.</p>
-    </div>
-  </footer>
-
-  <!-- Chart.js for analytics (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Page-specific dashboard logic -->
-  <script src="dashboard.js"></script>
+  <script src="../theme.js"></script>
   <script src="../app.js"></script>
   <script>
-    const userName = localStorage.getItem('userName');
-    if (userName) {
-      document.getElementById('user-name').textContent = userName;
-    }
-    
+    let currentUsername = '';
+
     function logout() {
       if (confirm('Biztosan ki szeretnél jelentkezni?')) {
         localStorage.removeItem('authToken');
@@ -411,6 +249,154 @@
         window.location.href = '../login.html';
       }
     }
+
+    async function loadUserData() {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        const response = await fetch('/api/user/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            currentUsername = data.user.username || data.user.email;
+            
+            const nameEl = document.getElementById('user-name');
+            if (nameEl) nameEl.textContent = data.user.name || data.user.username;
+            
+            const balanceEl = document.getElementById('user-balance');
+            if (balanceEl) {
+              const balance = data.user.balance || 0;
+              balanceEl.textContent = balance.toLocaleString('hu-HU');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      }
+    }
+
+    async function loadRecentTransactions() {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        const response = await fetch('/api/transactions?limit=5', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const container = document.getElementById('recent-transactions');
+        
+        if (!data.success || !data.transactions || data.transactions.length === 0) {
+          return;
+        }
+
+        container.innerHTML = '';
+        
+        let sentCount = 0;
+        let receivedCount = 0;
+
+        data.transactions.forEach(tx => {
+          const fromUsername = tx.fromUser?.username || tx.fromUser?.email || '';
+          const toUsername = tx.toUser?.username || tx.toUser?.email || '';
+          
+          const isOutgoing = fromUsername === currentUsername;
+          const partnerName = isOutgoing ? toUsername : fromUsername;
+          const initial = partnerName.charAt(0).toUpperCase();
+          
+          if (isOutgoing) sentCount++;
+          else receivedCount++;
+          
+          const txDate = new Date(tx.createdAt).toLocaleDateString('hu-HU', {
+            month: 'short',
+            day: 'numeric'
+          });
+          
+          const div = document.createElement('div');
+          div.className = 'transaction-mini';
+          div.innerHTML = `
+            <div class="avatar">${initial}</div>
+            <div class="details">
+              <div class="name">${partnerName}</div>
+              <div class="date">${txDate}</div>
+            </div>
+            <div class="amount ${isOutgoing ? 'negative' : 'positive'}">
+              ${isOutgoing ? '-' : '+'}${tx.amount.toLocaleString('hu-HU')} Ft
+            </div>
+          `;
+          container.appendChild(div);
+        });
+
+        // Update stats
+        document.getElementById('stat-total').textContent = data.transactions.length;
+        document.getElementById('stat-sent').textContent = sentCount;
+        document.getElementById('stat-received').textContent = receivedCount;
+
+        // Simple chart
+        renderChart(data.transactions);
+      } catch (error) {
+        console.error('Failed to load transactions:', error);
+      }
+    }
+
+    function renderChart(transactions) {
+      const ctx = document.getElementById('volumeChart');
+      if (!ctx) return;
+
+      // Group by day
+      const dailyData = {};
+      transactions.forEach(tx => {
+        const day = new Date(tx.createdAt).toLocaleDateString('hu-HU', { weekday: 'short' });
+        dailyData[day] = (dailyData[day] || 0) + tx.amount;
+      });
+
+      const labels = Object.keys(dailyData);
+      const values = Object.values(dailyData);
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.length ? labels : ['Nincs adat'],
+          datasets: [{
+            label: 'Forgalom (HUF)',
+            data: values.length ? values : [0],
+            backgroundColor: 'rgba(0, 212, 170, 0.6)',
+            borderColor: 'rgba(0, 212, 170, 1)',
+            borderWidth: 2,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255,255,255,0.1)' },
+              ticks: { color: '#888' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#888' }
+            }
+          }
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadUserData();
+      await loadRecentTransactions();
+    });
   </script>
 </body>
 </html>
