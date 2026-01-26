@@ -322,7 +322,6 @@
       <h2>Üdvözöljük, <span id="user-name">Felhasználó</span>!</h2>
       <p style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
         <span>Egyenleg: <strong id="user-balance">0</strong> HUF</span>
-        <button id="new-transfer-btn" class="cta" style="border:none; cursor:pointer; background:rgba(255,255,255,0.2);">💸 Új utalás</button>
       </p>
     </div>
 
@@ -392,42 +391,6 @@
       <p style="margin: 0; color: #718096; font-size: 14px;">© 2025 Logi Credit. Minden jog fenntartva.</p>
     </div>
   </footer>
-
-  <!-- Transfer Modal -->
-  <div id="transfer-modal" class="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Új utalás indítása</h3>
-        <button class="close-modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="transfer-form">
-          <div class="form-group">
-            <label for="recipient-search">Címzett (Felhasználónév vagy Email)</label>
-            <input type="text" id="recipient-search" class="form-control" placeholder="Kezdj el gépelni..." autocomplete="off">
-            <input type="hidden" id="recipient-id" name="recipient-id">
-            <div id="recipient-autocomplete" class="autocomplete-list"></div>
-          </div>
-          
-          <div class="form-group">
-            <label for="amount">Összeg (HUF)</label>
-            <input type="number" id="amount" class="form-control" min="1" placeholder="pl. 5000" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="note">Közlemény (Opcionális)</label>
-            <input type="text" id="note" class="form-control" maxlength="140" placeholder="Rövid üzenet...">
-          </div>
-          
-          <div id="transfer-error" style="color: #dc2626; font-size: 13px; margin-top: 8px; display: none;"></div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary close-modal-btn">Mégse</button>
-        <button type="submit" form="transfer-form" class="btn btn-primary">Küldés</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Chart.js for analytics (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

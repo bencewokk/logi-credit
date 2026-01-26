@@ -3,407 +3,525 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tranzakciók - Logi Credit</title>
-  <link rel="stylesheet" href="../styles.css">
+  <title>Utalás - Logi Credit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f8f9fa;
       margin: 0;
       padding: 0;
     }
     
-    header {
-      background: white;
-      border-bottom: 1px solid #e9ecef;
-      padding: 20px 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d0d0d;
+      color: #ffffff;
+      min-height: 100vh;
     }
     
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-    
-    .header-content {
+    /* Header */
+    .header {
+      background: #1a1a1a;
+      padding: 16px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
+      border-bottom: 1px solid #2a2a2a;
     }
     
-    .header-title {
+    .header-left {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
     
-    .header-title .logo {
-      height: 50px;
-      margin: 0;
+    .header-left img {
+      height: 36px;
     }
     
-    .header-title-text h1 {
-      font-size: 24px;
+    .header-left span {
+      font-size: 20px;
       font-weight: 700;
-      color: #1a202c;
-      margin: 0 0 4px 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
     }
     
-    .header-title-text p {
-      margin: 0;
-      color: #718096;
-      font-size: 14px;
-    }
-    
-    nav {
+    .header-nav {
       display: flex;
-      gap: 24px;
+      gap: 8px;
       align-items: center;
     }
     
-    nav a {
-      color: #4a5568;
+    .header-nav a {
+      color: #888;
       text-decoration: none;
-      font-weight: 500;
+      padding: 10px 16px;
+      border-radius: 24px;
       font-size: 14px;
-      padding: 8px 16px;
-      border-radius: 8px;
+      font-weight: 500;
       transition: all 0.2s;
     }
     
-    nav a:hover {
-      background: #f7fafc;
-      color: #667eea;
+    .header-nav a:hover {
+      background: #2a2a2a;
+      color: #fff;
     }
     
-    nav a.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+    .header-nav a.active {
+      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
+      color: #fff;
     }
     
     .logout-btn {
-      background: #fee;
-      color: #c53030;
-      padding: 8px 16px;
-      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
       border: none;
+      padding: 10px 16px;
+      border-radius: 24px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      font-size: 14px;
       transition: all 0.2s;
       font-family: inherit;
     }
     
     .logout-btn:hover {
-      background: #fc8181;
-      color: white;
+      background: #ef4444;
+      color: #fff;
     }
     
-    main {
-      padding: 32px 0;
+    /* Main Container */
+    .main-container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 40px 24px;
     }
     
-    .welcome-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px;
-      border-radius: 16px;
+    /* Balance Card */
+    .balance-card {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 24px;
+      padding: 32px;
       margin-bottom: 32px;
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      text-align: center;
+      border: 1px solid #2a2a4a;
     }
     
-    .welcome-section h2 {
-      font-size: 28px;
+    .balance-label {
+      color: #888;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .balance-amount {
+      font-size: 48px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+    
+    .balance-currency {
+      color: #666;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    /* Transfer Section */
+    .transfer-section {
+      background: #1a1a1a;
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+      border: 1px solid #2a2a2a;
+    }
+    
+    .section-title {
+      font-size: 20px;
       font-weight: 700;
-      margin: 0 0 8px 0;
-    }
-    
-    .welcome-section p {
-      margin: 0;
-      opacity: 0.95;
-      font-size: 15px;
-    }
-    
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #e9ecef;
-      transition: all 0.2s;
       margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     
-    .card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      transform: translateY(-2px);
-    }
-    
-    .card h3 {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1a202c;
-      margin: 0 0 8px 0;
-    }
-    
-    .card .muted {
-      color: #718096;
-      font-size: 14px;
-      margin: 0 0 20px 0;
-    }
-    
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-    }
-    
-    .data-table thead {
-      background: #f7fafc;
-      border-radius: 8px;
-    }
-    
-    .data-table th {
-      padding: 12px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 13px;
-      color: #4a5568;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .data-table td {
-      padding: 12px;
-      border-bottom: 1px solid #e9ecef;
-      font-size: 14px;
-      color: #2d3748;
-    }
-    
-    .data-table tbody tr:hover {
-      background: #f7fafc;
-    }
-    
-    .data-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-    
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
+    .section-title .icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
       border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      color: #888;
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
     }
     
-    .status-ok {
-      background: #c6f6d5;
-      color: #22543d;
-    }
-    
-    .transfer-form {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    
-    .transfer-form .full-width {
-      grid-column: 1 / -1;
-    }
-    
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .form-group label {
-      font-weight: 600;
-      color: #2d3748;
-      font-size: 14px;
-    }
-    
-    .form-group input {
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 15px;
-      font-family: inherit;
-      transition: all 0.2s ease;
-      background: #f7fafc;
-    }
-    
-    .form-group input:hover {
-      border-color: #cbd5e0;
-      background: white;
-    }
-    
-    .form-group input:focus {
-      outline: none;
-      border-color: #667eea;
-      background: white;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 14px 24px;
-      border-radius: 10px;
+    .form-input {
+      width: 100%;
+      background: #0d0d0d;
+      border: 2px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 16px 20px;
+      color: #fff;
       font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
       font-family: inherit;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      transition: all 0.2s;
     }
     
-    .btn-primary:hover {
+    .form-input:hover {
+      border-color: #3a3a3a;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #00d4aa;
+      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.1);
+    }
+    
+    .form-input::placeholder {
+      color: #555;
+    }
+    
+    /* Amount Input Special */
+    .amount-input-wrapper {
+      position: relative;
+    }
+    
+    .amount-input {
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      padding: 24px 20px;
+    }
+    
+    .amount-currency {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    /* Submit Button */
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #00d4aa 0%, #7c3aed 100%);
+      border: none;
+      border-radius: 16px;
+      padding: 18px 32px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+    
+    .submit-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 24px rgba(0, 212, 170, 0.3);
     }
     
-    .btn-primary:disabled {
-      opacity: 0.7;
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+    
+    .submit-btn:disabled {
+      opacity: 0.5;
       cursor: not-allowed;
       transform: none;
     }
     
+    /* Message */
     .transfer-msg {
+      padding: 16px 20px;
+      border-radius: 16px;
       font-size: 14px;
-      padding: 12px 16px;
-      border-radius: 8px;
+      font-weight: 600;
+      margin-top: 16px;
       display: none;
+      text-align: center;
     }
     
     .transfer-msg.success {
       display: block;
-      background: #c6f6d5;
-      color: #22543d;
+      background: rgba(0, 212, 170, 0.15);
+      color: #00d4aa;
+      border: 1px solid rgba(0, 212, 170, 0.3);
     }
     
     .transfer-msg.error {
       display: block;
-      background: #fed7d7;
-      color: #742a2a;
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
     
-    @media (max-width: 768px) {
-      .header-content {
+    /* Transactions List */
+    .transactions-section {
+      background: #1a1a1a;
+      border-radius: 24px;
+      padding: 32px;
+      border: 1px solid #2a2a2a;
+    }
+    
+    .transaction-list {
+      list-style: none;
+    }
+    
+    .transaction-item {
+      display: flex;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #2a2a2a;
+      transition: all 0.2s;
+    }
+    
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+    
+    .transaction-item:hover {
+      background: rgba(255,255,255,0.02);
+      margin: 0 -16px;
+      padding: 16px;
+      border-radius: 12px;
+    }
+    
+    .transaction-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-right: 16px;
+      flex-shrink: 0;
+    }
+    
+    .transaction-details {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .transaction-name {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .transaction-meta {
+      color: #666;
+      font-size: 13px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .transaction-amount {
+      font-weight: 700;
+      font-size: 16px;
+      text-align: right;
+    }
+    
+    .transaction-amount.incoming {
+      color: #00d4aa;
+    }
+    
+    .transaction-amount.outgoing {
+      color: #ef4444;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #666;
+    }
+    
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    /* Quick Amount Buttons */
+    .quick-amounts {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .quick-amount-btn {
+      background: #2a2a2a;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      color: #888;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .quick-amount-btn:hover {
+      background: #3a3a3a;
+      color: #fff;
+    }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header {
         flex-direction: column;
-        align-items: flex-start;
+        gap: 16px;
       }
       
-      nav {
+      .header-nav {
         flex-wrap: wrap;
+        justify-content: center;
       }
       
-      .transfer-form {
-        grid-template-columns: 1fr;
+      .balance-amount {
+        font-size: 36px;
+      }
+      
+      .amount-input {
+        font-size: 24px;
       }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <div class="header-content">
-        <div class="header-title">
-          <img src="../1000013760.png" alt="Logi Credit Logo" class="logo">
-          <div class="header-title-text">
-            <h1>Logi Credit</h1>
-            <p>Tranzakciók</p>
-          </div>
-        </div>
-        <nav>
-          <a href="../home/">Dashboard</a>
-          <a href="david.html">Auth</a>
-          <a href="pali.html">Analytics</a>
-          <a href="kristof.html" class="active">Tranzakciók</a>
-          <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
-        </nav>
-      </div>
+  <header class="header">
+    <div class="header-left">
+      <img src="../1000013760.png" alt="Logo">
+      <span>Logi Credit</span>
     </div>
+    <nav class="header-nav">
+      <a href="../home/">Dashboard</a>
+      <a href="david.html">Auth</a>
+      <a href="pali.html">Analytics</a>
+      <a href="kristof.html" class="active">Utalás</a>
+      <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
+    </nav>
   </header>
 
-  <main class="container">
-    <div class="welcome-section">
-      <h2>💰 Tranzakciók kezelése</h2>
-      <p style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <span>Egyenleg: <strong id="user-balance">0</strong> HUF</span>
-      </p>
+  <main class="main-container">
+    <!-- Balance Card -->
+    <div class="balance-card">
+      <div class="balance-label">Elérhető egyenleg</div>
+      <div class="balance-amount" id="user-balance">0</div>
+      <div class="balance-currency">HUF</div>
     </div>
 
-    <div class="card">
-      <h3>💸 Új utalás</h3>
-      <p class="muted">Küldj pénzt egy másik felhasználónak</p>
+    <!-- Transfer Section -->
+    <div class="transfer-section">
+      <h2 class="section-title">
+        <span class="icon">💸</span>
+        Pénz küldése
+      </h2>
       
-      <form id="transferForm" class="transfer-form">
+      <form id="transferForm">
         <div class="form-group">
-          <label for="toUser">Címzett (felhasználónév vagy email)</label>
-          <input id="toUser" name="toUser" type="text" required placeholder="Kezdj el gépelni..." />
+          <label class="form-label">Címzett</label>
+          <input 
+            type="text" 
+            id="toUser" 
+            class="form-input" 
+            required 
+            placeholder="Felhasználónév vagy email"
+            autocomplete="off"
+          />
         </div>
+        
         <div class="form-group">
-          <label for="amount">Összeg (HUF)</label>
-          <input id="amount" name="amount" type="number" min="1" step="1" required placeholder="pl. 5000" />
+          <label class="form-label">Összeg</label>
+          <div class="amount-input-wrapper">
+            <input 
+              type="number" 
+              id="amount" 
+              class="form-input amount-input" 
+              min="1" 
+              step="1" 
+              required 
+              placeholder="0"
+            />
+            <span class="amount-currency">HUF</span>
+          </div>
+          <div class="quick-amounts">
+            <button type="button" class="quick-amount-btn" data-amount="1000">1 000</button>
+            <button type="button" class="quick-amount-btn" data-amount="5000">5 000</button>
+            <button type="button" class="quick-amount-btn" data-amount="10000">10 000</button>
+            <button type="button" class="quick-amount-btn" data-amount="25000">25 000</button>
+          </div>
         </div>
-        <div class="form-group full-width">
-          <label for="note">Közlemény (opcionális)</label>
-          <input id="note" name="note" type="text" maxlength="140" placeholder="Rövid üzenet..." />
+        
+        <div class="form-group">
+          <label class="form-label">Közlemény (opcionális)</label>
+          <input 
+            type="text" 
+            id="note" 
+            class="form-input" 
+            maxlength="140" 
+            placeholder="Mi célból küldöd?"
+          />
         </div>
-        <div class="form-group full-width">
-          <button type="submit" id="sendBtn" class="btn-primary">Küldés</button>
-        </div>
-        <div id="transferMsg" class="transfer-msg full-width"></div>
+        
+        <button type="submit" id="sendBtn" class="submit-btn">
+          Küldés
+        </button>
+        
+        <div id="transferMsg" class="transfer-msg"></div>
       </form>
     </div>
 
-    <div class="card">
-      <h3>📋 Tranzakció előzmények</h3>
-      <p class="muted">Legutóbbi tranzakciók</p>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Dátum</th>
-            <th>Feladó</th>
-            <th>Címzett</th>
-            <th>Összeg</th>
-            <th>Közlemény</th>
-            <th>Státusz</th>
-          </tr>
-        </thead>
-        <tbody id="kristof-transaction-body">
-          <!-- Populated dynamically -->
-        </tbody>
-      </table>
+    <!-- Transactions Section -->
+    <div class="transactions-section">
+      <h2 class="section-title">
+        <span class="icon">📋</span>
+        Tranzakciók
+      </h2>
+      
+      <ul class="transaction-list" id="transaction-list">
+        <!-- Populated dynamically -->
+      </ul>
     </div>
   </main>
 
-  <footer style="background: white; border-top: 1px solid #e9ecef; padding: 20px 0; margin-top: 40px; text-align: center;">
-    <div class="container">
-      <p style="margin: 0; color: #718096; font-size: 14px;">© 2025 Logi Credit. Minden jog fenntartva.</p>
-    </div>
-  </footer>
-
   <script src="../app.js"></script>
   <script>
+    let currentUsername = '';
+
     function logout() {
       if (confirm('Biztosan ki szeretnél jelentkezni?')) {
         localStorage.removeItem('authToken');
@@ -425,6 +543,7 @@
         if (response.ok) {
           const data = await response.json();
           if (data.user) {
+            currentUsername = data.user.username || data.user.email;
             const balanceEl = document.getElementById('user-balance');
             if (balanceEl) {
               const balance = data.user.balance || 0;
@@ -437,12 +556,16 @@
       }
     }
 
-    async function loadKristofTransactions() {
+    async function loadTransactions() {
       try {
         const token = localStorage.getItem('authToken');
         if (!token) {
-          console.warn('No authentication token found');
-          document.getElementById('kristof-transaction-body').innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#718096;">Bejelentkezés szükséges a tranzakciók megtekintéséhez</td></tr>';
+          document.getElementById('transaction-list').innerHTML = `
+            <li class="empty-state">
+              <div class="icon">🔒</div>
+              <div>Bejelentkezés szükséges</div>
+            </li>
+          `;
           return;
         }
 
@@ -458,51 +581,78 @@
         }
 
         const data = await response.json();
-        const tbody = document.getElementById('kristof-transaction-body');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
+        const listEl = document.getElementById('transaction-list');
+        if (!listEl) return;
         
         if (!data.success || !data.transactions || data.transactions.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#718096;">Még nincsenek tranzakciók</td></tr>';
+          listEl.innerHTML = `
+            <li class="empty-state">
+              <div class="icon">📭</div>
+              <div>Még nincsenek tranzakciók</div>
+            </li>
+          `;
           return;
         }
 
-        const currentUsername = localStorage.getItem('username') || 'kristof';
+        listEl.innerHTML = '';
         
         data.transactions.forEach(tx => {
-          const tr = document.createElement('tr');
-          const txDate = new Date(tx.createdAt).toLocaleDateString('hu-HU');
-          const txId = tx._id ? tx._id.substring(0, 8).toUpperCase() : '-';
-          const fromUsername = tx.fromUser?.username || tx.fromUser?.email || '-';
-          const toUsername = tx.toUser?.username || tx.toUser?.email || '-';
+          const li = document.createElement('li');
+          li.className = 'transaction-item';
           
-          const fromUser = fromUsername === currentUsername ? `<strong>${fromUsername}</strong>` : fromUsername;
-          const toUser = toUsername === currentUsername ? `<strong>${toUsername}</strong>` : toUsername;
+          const txDate = new Date(tx.createdAt).toLocaleDateString('hu-HU', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
           
-          tr.innerHTML = `
-            <td><code style="color: #718096; font-size: 0.9em;">TT-${txId}</code></td>
-            <td>${txDate}</td>
-            <td>${fromUser}</td>
-            <td>${toUser}</td>
-            <td style="font-weight: 600;">${tx.amount.toLocaleString()} ${tx.currency || 'HUF'}</td>
-            <td>${tx.note || '-'}</td>
-            <td><span class="status-badge status-ok">Befejezett</span></td>
+          const fromUsername = tx.fromUser?.username || tx.fromUser?.email || 'Ismeretlen';
+          const toUsername = tx.toUser?.username || tx.toUser?.email || 'Ismeretlen';
+          
+          const isOutgoing = fromUsername === currentUsername;
+          const partnerName = isOutgoing ? toUsername : fromUsername;
+          const initial = partnerName.charAt(0).toUpperCase();
+          
+          const amountClass = isOutgoing ? 'outgoing' : 'incoming';
+          const amountPrefix = isOutgoing ? '-' : '+';
+          
+          li.innerHTML = `
+            <div class="transaction-avatar">${initial}</div>
+            <div class="transaction-details">
+              <div class="transaction-name">${isOutgoing ? 'Küldve: ' : 'Fogadva: '}${partnerName}</div>
+              <div class="transaction-meta">
+                <span>${txDate}</span>
+                ${tx.note ? `<span>• ${tx.note}</span>` : ''}
+              </div>
+            </div>
+            <div class="transaction-amount ${amountClass}">
+              ${amountPrefix}${tx.amount.toLocaleString('hu-HU')} Ft
+            </div>
           `;
-          tbody.appendChild(tr);
+          listEl.appendChild(li);
         });
       } catch (err) {
         console.error('Could not load transactions:', err);
-        const tbody = document.getElementById('kristof-transaction-body');
-        if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#c53030;">Hiba történt a tranzakciók betöltése során</td></tr>';
-        }
+        document.getElementById('transaction-list').innerHTML = `
+          <li class="empty-state">
+            <div class="icon">⚠️</div>
+            <div>Hiba történt a betöltés során</div>
+          </li>
+        `;
       }
     }
 
-    // Handle transfer form submission
+    // Quick amount buttons
+    document.querySelectorAll('.quick-amount-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('amount').value = btn.dataset.amount;
+      });
+    });
+
+    // Form submission
     document.addEventListener('DOMContentLoaded', () => {
-      loadKristofTransactions();
+      loadTransactions();
       loadUserBalance();
       
       const form = document.getElementById('transferForm');
@@ -515,7 +665,7 @@
         const token = localStorage.getItem('authToken');
         if (!token) {
           msgEl.textContent = '⚠️ Bejelentkezés szükséges';
-          msgEl.className = 'transfer-msg error full-width';
+          msgEl.className = 'transfer-msg error';
           return;
         }
 
@@ -525,16 +675,12 @@
 
         if (!toUser || amount < 1) {
           msgEl.textContent = '⚠️ Töltsd ki az összes mezőt helyesen';
-          msgEl.className = 'transfer-msg error full-width';
+          msgEl.className = 'transfer-msg error';
           return;
         }
 
         sendBtn.disabled = true;
-        msgEl.textContent = 'Küldés...';
-        msgEl.className = 'transfer-msg full-width';
-        msgEl.style.display = 'block';
-        msgEl.style.background = '#f7fafc';
-        msgEl.style.color = '#718096';
+        sendBtn.textContent = 'Küldés...';
 
         try {
           const response = await fetch('/api/transactions/transfer', {
@@ -549,25 +695,28 @@
           const data = await response.json();
 
           if (data.success) {
-            msgEl.textContent = `✅ ${data.message || 'Tranzakció sikeres!'}`;
-            msgEl.className = 'transfer-msg success full-width';
+            msgEl.textContent = `✅ ${data.message || 'Sikeres utalás!'}`;
+            msgEl.className = 'transfer-msg success';
             form.reset();
-            // Reload transactions and update balance display
+            
+            // Reload data
+            await loadUserBalance();
+            await loadTransactions();
+            
             setTimeout(() => {
-              loadKristofTransactions();
-              loadUserBalance();
               msgEl.style.display = 'none';
-            }, 2000);
+            }, 3000);
           } else {
             msgEl.textContent = `❌ ${data.message || 'Hiba történt'}`;
-            msgEl.className = 'transfer-msg error full-width';
+            msgEl.className = 'transfer-msg error';
           }
         } catch (err) {
           console.error('Transfer error:', err);
           msgEl.textContent = '❌ Hálózati hiba történt';
-          msgEl.className = 'transfer-msg error full-width';
+          msgEl.className = 'transfer-msg error';
         } finally {
           sendBtn.disabled = false;
+          sendBtn.textContent = 'Küldés';
         }
       });
     });
