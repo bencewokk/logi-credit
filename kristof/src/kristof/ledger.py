@@ -27,6 +27,16 @@ class Transaction:
     note: str = ""
     created_at: datetime = field(default_factory=_utc_now)
 
+    def to_dict(self) -> Dict:
+        return {
+            'id': self.id,
+            'from_user': self.from_user,
+            'to_user': self.to_user,
+            'amount': self.amount,
+            'note': self.note,
+            'created_at': self.created_at.isoformat(),
+        }
+
 
 class Ledger:
     """In-memory ledger that tracks balances via posted transactions.
@@ -50,6 +60,10 @@ class Ledger:
 
     def transactions(self) -> List[Transaction]:
         return list(self._transactions)
+
+    def real_transactions(self) -> List[Transaction]:
+        """Return only transfer transactions (where `from_user` is not None)."""
+        return [tx for tx in self._transactions if tx.from_user is not None]
 
     def deposit(self, *, to_user: str, amount: int, note: str = "") -> Transaction:
         """Credit money to a user (receiving money increases balance)."""
