@@ -303,7 +303,7 @@
           <img src="../1000013760.png" alt="Logi Credit Logo" class="logo">
           <div class="header-title-text">
             <h1>Logi Credit</h1>
-            <p>Admin Dashboard</p>
+            <p>Dashboard</p>
           </div>
         </div>
         <nav>
@@ -319,8 +319,10 @@
 
   <main class="container">
     <div class="welcome-section">
-      <h2>Üdvözöljük, <span id="user-name">Admin</span>!</h2>
-      <p>Itt kezelheted a rendszer beállításait és nyomon követheted a tranzakciókat.</p>
+      <h2>Üdvözöljük, <span id="user-name">Felhasználó</span>!</h2>
+      <p>Itt kezelheted a rendszer beállításait és nyomon követheted a tranzakciókat.
+        <button id="new-transfer-btn" class="cta" style="border:none; cursor:pointer; margin-left:10px; background:rgba(255,255,255,0.2);">💸 Új utalás</button>
+      </p>
     </div>
 
     <div class="dashboard-grid">
@@ -359,35 +361,8 @@
               <th>Státusz</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>#1001</td>
-              <td>Kiss Péter</td>
-              <td>2025-11-09</td>
-              <td>€2,500</td>
-              <td><span class="status-badge status-ok">Jóváhagyva</span></td>
-            </tr>
-            <tr>
-              <td>#1002</td>
-              <td>Nagy Anna</td>
-              <td>2025-11-09</td>
-              <td>€1,800</td>
-              <td><span class="status-badge status-pending">Folyamatban</span></td>
-            </tr>
-            <tr>
-              <td>#1003</td>
-              <td>Szabó Gábor</td>
-              <td>2025-11-08</td>
-              <td>€3,200</td>
-              <td><span class="status-badge status-ok">Jóváhagyva</span></td>
-            </tr>
-            <tr>
-              <td>#1004</td>
-              <td>Kovács Éva</td>
-              <td>2025-11-08</td>
-              <td>€950</td>
-              <td><span class="status-badge status-failed">Elutasítva</span></td>
-            </tr>
+          <tbody id="transaction-table-body">
+            <!-- Populated from ../data/transactions.json by dashboard.js -->
           </tbody>
         </table>
       </div>
@@ -417,19 +392,53 @@
     </div>
   </footer>
 
+  <!-- Transfer Modal -->
+  <div id="transfer-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Új utalás indítása</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="transfer-form">
+          <div class="form-group">
+            <label for="recipient-search">Címzett (Felhasználónév vagy Email)</label>
+            <input type="text" id="recipient-search" class="form-control" placeholder="Kezdj el gépelni..." autocomplete="off">
+            <input type="hidden" id="recipient-id" name="recipient-id">
+            <div id="recipient-autocomplete" class="autocomplete-list"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="amount">Összeg (HUF)</label>
+            <input type="number" id="amount" class="form-control" min="1" placeholder="pl. 5000" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="note">Közlemény (Opcionális)</label>
+            <input type="text" id="note" class="form-control" maxlength="140" placeholder="Rövid üzenet...">
+          </div>
+          
+          <div id="transfer-error" style="color: #dc2626; font-size: 13px; margin-top: 8px; display: none;"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary close-modal-btn">Mégse</button>
+        <button type="submit" form="transfer-form" class="btn btn-primary">Küldés</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Chart.js for analytics (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Page-specific dashboard logic -->
   <script src="dashboard.js"></script>
   <script src="../app.js"></script>
   <script>
-    // Update user name
     const userName = localStorage.getItem('userName');
     if (userName) {
       document.getElementById('user-name').textContent = userName;
     }
     
-    // Logout function
     function logout() {
       if (confirm('Biztosan ki szeretnél jelentkezni?')) {
         localStorage.removeItem('authToken');

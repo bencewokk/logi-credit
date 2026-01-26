@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded',()=>{
   console.log('Logi Credit starter site loaded')
+
+  // If OAuth callback redirected to a page with ?token=..., persist it
+  // before running auth checks so we don't immediately bounce back to /login.html.
+  hydrateAuthFromUrl();
   
   // Authentication check
   checkAuthentication();
@@ -15,12 +19,40 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Add logout functionality if user is authenticated
   addLogoutFunctionality();
   
-  // Update user name if displayed
-  updateUserName();
+  // Hydrate user profile (OAuth/local) then update any displayed user name
+  ensureUserProfile().finally(updateUserName);
 
   // Render git version in the footer (commit + date)
   renderBuildInfo();
 })
+
+function isValidAuthToken(token) {
+  return !!(token && (
+    token === 'authenticated' ||
+    token.startsWith('authenticated_') ||
+    token.startsWith('google_auth_')
+  ));
+}
+
+function hydrateAuthFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (!token || !isValidAuthToken(token)) return;
+
+    localStorage.setItem('authToken', token);
+
+    // Remove token from the URL for cleanliness (and to avoid leaking it via screenshots/copies).
+    url.searchParams.delete('token');
+    if (url.searchParams.get('google_auth') === 'success') {
+      url.searchParams.delete('google_auth');
+    }
+    window.history.replaceState({}, document.title, url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : '') + url.hash);
+  } catch (e) {
+    // Non-fatal: if URL parsing fails, fall back to existing localStorage behavior.
+    console.warn('Failed to hydrate auth token from URL:', e);
+  }
+}
 
 async function renderBuildInfo() {
   // Avoid duplicate insertion
@@ -77,11 +109,7 @@ function checkAuthentication() {
   const authToken = localStorage.getItem('authToken');
   
   // Check if token is valid (old format or new format with timestamp)
-  const isAuthenticated = authToken && (
-    authToken === 'authenticated' || 
-    authToken.startsWith('authenticated_') || 
-    authToken.startsWith('google_auth_')
-  );
+  const isAuthenticated = isValidAuthToken(authToken);
   
   // If not on login page and not authenticated, redirect to login
   if (!isLoginPage && !isAuthenticated) {
@@ -103,11 +131,7 @@ function checkAuthentication() {
  */
 function addLogoutFunctionality() {
   const authToken = localStorage.getItem('authToken');
-  const isAuthenticated = authToken && (
-    authToken === 'authenticated' || 
-    authToken.startsWith('authenticated_') || 
-    authToken.startsWith('google_auth_')
-  );
+  const isAuthenticated = isValidAuthToken(authToken);
   
   if (isAuthenticated) {
     const nav = document.querySelector('header nav');
@@ -146,6 +170,35 @@ function updateUserName() {
   }
 }
 
+async function ensureUserProfile() {
+  const token = localStorage.getItem('authToken');
+  if (!isValidAuthToken(token)) return;
+
+  // If already set, don't overwrite.
+  if (localStorage.getItem('userName')) return;
+
+  try {
+    const resp = await fetch('/api/user', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (!resp.ok) return;
+
+    const data = await resp.json();
+    const user = data && data.user;
+    if (!user) return;
+
+    const displayName = user.name || user.username || user.email;
+    if (displayName) {
+      localStorage.setItem('userName', String(displayName));
+    }
+  } catch (e) {
+    // Non-fatal; UI can still work with token-only auth.
+    console.warn('Failed to load current user profile:', e);
+  }
+}
+
 /**
  * Logout function
  */
@@ -174,7 +227,7 @@ function logout() {
  * Get authentication status
  */
 function isAuthenticated() {
-  return localStorage.getItem('authToken') === 'authenticated';
+  return isValidAuthToken(localStorage.getItem('authToken'));
 }
 
 /**

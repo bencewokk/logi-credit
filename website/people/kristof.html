@@ -38,14 +38,18 @@
       <table style="width:100%;border-collapse:collapse">
         <thead>
           <tr>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">When</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">ID</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Date</th>
             <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">From</th>
             <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">To</th>
-            <th style="text-align:right;padding:10px;border-bottom:1px solid #eee;">Amount</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Amount</th>
             <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Note</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Status</th>
           </tr>
         </thead>
-        <tbody id="txBody"></tbody>
+        <tbody id="kristof-transaction-body">
+          <!-- Populated from ../data/team-transactions.js -->
+        </tbody>
       </table>
     </section>
 
@@ -58,137 +62,126 @@
   </div>
   <script src="../app.js"></script>
   <script>
-    const formatCurrency = new Intl.NumberFormat('hu-HU', {
-      style: 'currency',
-      currency: 'HUF',
-      maximumFractionDigits: 0
-    });
-
-    function getAuthHeaders() {
-      const token = localStorage.getItem('authToken');
-      return token ? { 'Authorization': `Bearer ${token}` } : {};
-    }
-
-    async function loadUsers() {
-      const toInput = document.getElementById('toUser');
-      const datalist = document.getElementById('userSuggestions');
-      if (!toInput || !datalist) return;
-
-      // Wire datalist to input
-      toInput.setAttribute('list', 'userSuggestions');
-
-      const res = await fetch('/api/users', { headers: { ...getAuthHeaders() } });
-      const data = await res.json();
-      if (!data.success) return;
-
-      datalist.innerHTML = '';
-      (data.users || []).forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u.username;
-        datalist.appendChild(opt);
-        if (u.email) {
-          const opt2 = document.createElement('option');
-          opt2.value = u.email;
-          datalist.appendChild(opt2);
-        }
-      });
-    }
-
-    function renderTransactions(transactions) {
-      const body = document.getElementById('txBody');
-      if (!body) return;
-
-      body.innerHTML = '';
-
-      if (!transactions || transactions.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="5" style="padding:12px;color:#666;">No transactions yet.</td>`;
-        body.appendChild(row);
-        return;
-      }
-
-      transactions.forEach(tx => {
-        const from = tx.fromUser?.username || tx.fromUser?.email || '—';
-        const to = tx.toUser?.username || tx.toUser?.email || '—';
-        const when = tx.createdAt ? new Date(tx.createdAt) : null;
-        const whenText = when ? when.toLocaleString('hu-HU') : '—';
-        const amountText = formatCurrency.format(Number(tx.amount || 0));
-        const noteText = tx.note ? String(tx.note) : '';
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${whenText}</td>
-          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${from}</td>
-          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${to}</td>
-          <td style="padding:10px;border-bottom:1px solid #f2f2f2;text-align:right;">${amountText}</td>
-          <td style="padding:10px;border-bottom:1px solid #f2f2f2;">${noteText}</td>
-        `;
-        body.appendChild(row);
-      });
-    }
-
-    async function loadTransactions() {
-      const res = await fetch('/api/transactions?limit=50', { headers: { ...getAuthHeaders() } });
-      const data = await res.json();
-      if (!data.success) {
-        renderTransactions([]);
-        return;
-      }
-      renderTransactions(data.transactions || []);
-    }
-
-    async function submitTransfer(e) {
-      e.preventDefault();
-      const msg = document.getElementById('transferMsg');
-      const btn = document.getElementById('sendBtn');
-
-      const to = document.getElementById('toUser').value.trim();
-      const amount = Number(document.getElementById('amount').value);
-      const note = document.getElementById('note').value;
-
-      if (btn) btn.disabled = true;
-      if (msg) {
-        msg.textContent = 'Sending...';
-        msg.style.color = '#666';
-      }
-
+    async function loadKristofTransactions() {
       try {
-        const res = await fetch('/api/transactions/transfer', {
-          method: 'POST',
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.warn('No authentication token found');
+          document.getElementById('kristof-transaction-body').innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#666;">Bejelentkezés szükséges a tranzakciók megtekintéséhez</td></tr>';
+          return;
+        }
+
+        const response = await fetch('/api/transactions', {
           headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeaders()
-          },
-          body: JSON.stringify({ to, amount, note })
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
 
-        const data = await res.json();
-        if (!data.success) {
-          throw new Error(data.message || 'Transfer failed');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        if (msg) {
-          msg.textContent = 'Sent.';
-          msg.style.color = '#16a34a';
+        const data = await response.json();
+        const tbody = document.getElementById('kristof-transaction-body');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        if (!data.success || !data.transactions || data.transactions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#666;">Még nincsenek tranzakciók</td></tr>';
+          return;
         }
-        document.getElementById('transferForm').reset();
-        await loadTransactions();
+
+        const currentUsername = localStorage.getItem('username') || 'kristof';
+        
+        data.transactions.forEach(tx => {
+          const tr = document.createElement('tr');
+          const txDate = new Date(tx.createdAt).toLocaleDateString('hu-HU');
+          const txId = tx._id ? tx._id.substring(0, 8).toUpperCase() : '-';
+          const fromUsername = tx.fromUser?.username || tx.fromUser?.email || '-';
+          const toUsername = tx.toUser?.username || tx.toUser?.email || '-';
+          
+          const fromUser = fromUsername === currentUsername ? `<strong>${fromUsername}</strong>` : fromUsername;
+          const toUser = toUsername === currentUsername ? `<strong>${toUsername}</strong>` : toUsername;
+          
+          tr.innerHTML = `<td style="padding:10px;border-bottom:1px solid #eee;">TT-${txId}</td><td style="padding:10px;border-bottom:1px solid #eee;">${txDate}</td><td style="padding:10px;border-bottom:1px solid #eee;">${fromUser}</td><td style="padding:10px;border-bottom:1px solid #eee;">${toUser}</td><td style="padding:10px;border-bottom:1px solid #eee;">${tx.amount.toLocaleString()} ${tx.currency || 'HUF'}</td><td style="padding:10px;border-bottom:1px solid #eee;">${tx.note || '-'}</td><td style="padding:10px;border-bottom:1px solid #eee;">Befejezett</td>`;
+          tbody.appendChild(tr);
+        });
       } catch (err) {
-        if (msg) {
-          msg.textContent = err.message || 'Transfer failed';
-          msg.style.color = '#dc2626';
+        console.error('Could not load transactions:', err);
+        const tbody = document.getElementById('kristof-transaction-body');
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#dc2626;">Hiba történt a tranzakciók betöltése során</td></tr>';
         }
-      } finally {
-        if (btn) btn.disabled = false;
       }
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    // Handle transfer form submission
+    document.addEventListener('DOMContentLoaded', () => {
+      loadKristofTransactions();
+      
       const form = document.getElementById('transferForm');
-      if (form) form.addEventListener('submit', submitTransfer);
+      const msgEl = document.getElementById('transferMsg');
+      const sendBtn = document.getElementById('sendBtn');
 
-      await loadUsers();
-      await loadTransactions();
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const token = localStorage.getItem('token');
+        if (!token) {
+          msgEl.textContent = '⚠️ Bejelentkezés szükséges';
+          msgEl.style.color = '#dc2626';
+          return;
+        }
+
+        const toUser = document.getElementById('toUser').value.trim();
+        const amount = parseInt(document.getElementById('amount').value);
+        const note = document.getElementById('note').value.trim();
+
+        if (!toUser || amount < 1) {
+          msgEl.textContent = '⚠️ Töltsd ki az összes mezőt helyesen';
+          msgEl.style.color = '#dc2626';
+          return;
+        }
+
+        sendBtn.disabled = true;
+        msgEl.textContent = 'Küldés...';
+        msgEl.style.color = '#666';
+
+        try {
+          const response = await fetch('/api/transactions/transfer', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ toUser, amount, note })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            msgEl.textContent = '✅ Tranzakció sikeres!';
+            msgEl.style.color = '#16a34a';
+            form.reset();
+            // Reload transactions
+            setTimeout(() => {
+              loadKristofTransactions();
+              msgEl.textContent = '';
+            }, 2000);
+          } else {
+            msgEl.textContent = `❌ ${data.message || 'Hiba történt'}`;
+            msgEl.style.color = '#dc2626';
+          }
+        } catch (err) {
+          console.error('Transfer error:', err);
+          msgEl.textContent = '❌ Hálózati hiba történt';
+          msgEl.style.color = '#dc2626';
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
     });
   </script>
 </body>
