@@ -1,73 +1,422 @@
 <!doctype html>
-<html lang="en">
+<html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>kristof - Logi Credit</title>
+  <title>Tranzakciók - Logi Credit</title>
   <link rel="stylesheet" href="../styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+    
+    header {
+      background: white;
+      border-bottom: 1px solid #e9ecef;
+      padding: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .header-title .logo {
+      height: 50px;
+      margin: 0;
+    }
+    
+    .header-title-text h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0 0 4px 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header-title-text p {
+      margin: 0;
+      color: #718096;
+      font-size: 14px;
+    }
+    
+    nav {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    
+    nav a {
+      color: #4a5568;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    nav a:hover {
+      background: #f7fafc;
+      color: #667eea;
+    }
+    
+    nav a.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .logout-btn {
+      background: #fee;
+      color: #c53030;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .logout-btn:hover {
+      background: #fc8181;
+      color: white;
+    }
+    
+    main {
+      padding: 32px 0;
+    }
+    
+    .welcome-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      border-radius: 16px;
+      margin-bottom: 32px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .welcome-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+    
+    .welcome-section p {
+      margin: 0;
+      opacity: 0.95;
+      font-size: 15px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #e9ecef;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    
+    .card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0 0 8px 0;
+    }
+    
+    .card .muted {
+      color: #718096;
+      font-size: 14px;
+      margin: 0 0 20px 0;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    
+    .data-table thead {
+      background: #f7fafc;
+      border-radius: 8px;
+    }
+    
+    .data-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .data-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 14px;
+      color: #2d3748;
+    }
+    
+    .data-table tbody tr:hover {
+      background: #f7fafc;
+    }
+    
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-ok {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .transfer-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    
+    .transfer-form .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-group label {
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 14px;
+    }
+    
+    .form-group input {
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      background: #f7fafc;
+    }
+    
+    .form-group input:hover {
+      border-color: #cbd5e0;
+      background: white;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-primary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .transfer-msg {
+      font-size: 14px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .transfer-msg.success {
+      display: block;
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .transfer-msg.error {
+      display: block;
+      background: #fed7d7;
+      color: #742a2a;
+    }
+    
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      nav {
+        flex-wrap: wrap;
+      }
+      
+      .transfer-form {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>kristof</h1>
-    <p>Role: Tranzakciók</p>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="header-title">
+          <img src="../1000013760.png" alt="Logi Credit Logo" class="logo">
+          <div class="header-title-text">
+            <h1>Logi Credit</h1>
+            <p>Tranzakciók</p>
+          </div>
+        </div>
+        <nav>
+          <a href="../home/">Dashboard</a>
+          <a href="david.html">Auth</a>
+          <a href="pali.html">Analytics</a>
+          <a href="kristof.html" class="active">Tranzakciók</a>
+          <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
+        </nav>
+      </div>
+    </div>
+  </header>
 
-    <section>
-      <h2>Transactions</h2>
+  <main class="container">
+    <div class="welcome-section">
+      <h2>💰 Tranzakciók kezelése</h2>
+      <p>Itt kezelheted az utalásokat és megtekintheted a tranzakciók előzményeit.</p>
+    </div>
 
-      <form id="transferForm" style="display:grid;grid-template-columns:1fr 160px;gap:12px;align-items:end;margin:16px 0;">
-        <div>
-          <label for="toUser" style="display:block;font-weight:600;margin-bottom:6px;">Recipient (username or email)</label>
-          <input id="toUser" name="toUser" type="text" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;" />
-          <div style="margin-top:6px;font-size:12px;color:#666;">Tip: start typing, we’ll suggest known users.</div>
-          <datalist id="userSuggestions"></datalist>
+    <div class="card">
+      <h3>💸 Új utalás</h3>
+      <p class="muted">Küldj pénzt egy másik felhasználónak</p>
+      
+      <form id="transferForm" class="transfer-form">
+        <div class="form-group">
+          <label for="toUser">Címzett (felhasználónév vagy email)</label>
+          <input id="toUser" name="toUser" type="text" required placeholder="Kezdj el gépelni..." />
         </div>
-        <div>
-          <label for="amount" style="display:block;font-weight:600;margin-bottom:6px;">Amount (HUF)</label>
-          <input id="amount" name="amount" type="number" min="1" step="1" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;" />
+        <div class="form-group">
+          <label for="amount">Összeg (HUF)</label>
+          <input id="amount" name="amount" type="number" min="1" step="1" required placeholder="pl. 5000" />
         </div>
-        <div style="grid-column:1 / -1;">
-          <label for="note" style="display:block;font-weight:600;margin-bottom:6px;">Note (optional)</label>
-          <input id="note" name="note" type="text" maxlength="140" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;" />
+        <div class="form-group full-width">
+          <label for="note">Közlemény (opcionális)</label>
+          <input id="note" name="note" type="text" maxlength="140" placeholder="Rövid üzenet..." />
         </div>
-        <div style="grid-column:1 / -1;display:flex;gap:12px;align-items:center;">
-          <button type="submit" id="sendBtn" style="padding:10px 14px;border-radius:8px;border:0;background:#111827;color:#fff;font-weight:600;cursor:pointer;">Send</button>
-          <span id="transferMsg" style="font-size:13px;"></span>
+        <div class="form-group full-width">
+          <button type="submit" id="sendBtn" class="btn-primary">Küldés</button>
         </div>
+        <div id="transferMsg" class="transfer-msg full-width"></div>
       </form>
+    </div>
 
-      <table style="width:100%;border-collapse:collapse">
+    <div class="card">
+      <h3>📋 Tranzakció előzmények</h3>
+      <p class="muted">Legutóbbi tranzakciók</p>
+      <table class="data-table">
         <thead>
           <tr>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">ID</th>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Date</th>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">From</th>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">To</th>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Amount</th>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Note</th>
-            <th style="text-align:left;padding:10px;border-bottom:1px solid #eee;">Status</th>
+            <th>ID</th>
+            <th>Dátum</th>
+            <th>Feladó</th>
+            <th>Címzett</th>
+            <th>Összeg</th>
+            <th>Közlemény</th>
+            <th>Státusz</th>
           </tr>
         </thead>
         <tbody id="kristof-transaction-body">
-          <!-- Populated from ../data/team-transactions.js -->
+          <!-- Populated dynamically -->
         </tbody>
       </table>
-    </section>
+    </div>
+  </main>
 
-    <section>
-      <h2>Notes</h2>
-      <p>Add validation rules, formats, and endpoints here.</p>
-    </section>
+  <footer style="background: white; border-top: 1px solid #e9ecef; padding: 20px 0; margin-top: 40px; text-align: center;">
+    <div class="container">
+      <p style="margin: 0; color: #718096; font-size: 14px;">© 2025 Logi Credit. Minden jog fenntartva.</p>
+    </div>
+  </footer>
 
-    <p><a href="../index.html">Back to home</a></p>
-  </div>
   <script src="../app.js"></script>
   <script>
+    function logout() {
+      if (confirm('Biztosan ki szeretnél jelentkezni?')) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('loginTime');
+        window.location.href = '../login.html';
+      }
+    }
+
     async function loadKristofTransactions() {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken');
         if (!token) {
           console.warn('No authentication token found');
-          document.getElementById('kristof-transaction-body').innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#666;">Bejelentkezés szükséges a tranzakciók megtekintéséhez</td></tr>';
+          document.getElementById('kristof-transaction-body').innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#718096;">Bejelentkezés szükséges a tranzakciók megtekintéséhez</td></tr>';
           return;
         }
 
@@ -89,7 +438,7 @@
         tbody.innerHTML = '';
         
         if (!data.success || !data.transactions || data.transactions.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#666;">Még nincsenek tranzakciók</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#718096;">Még nincsenek tranzakciók</td></tr>';
           return;
         }
 
@@ -105,14 +454,22 @@
           const fromUser = fromUsername === currentUsername ? `<strong>${fromUsername}</strong>` : fromUsername;
           const toUser = toUsername === currentUsername ? `<strong>${toUsername}</strong>` : toUsername;
           
-          tr.innerHTML = `<td style="padding:10px;border-bottom:1px solid #eee;">TT-${txId}</td><td style="padding:10px;border-bottom:1px solid #eee;">${txDate}</td><td style="padding:10px;border-bottom:1px solid #eee;">${fromUser}</td><td style="padding:10px;border-bottom:1px solid #eee;">${toUser}</td><td style="padding:10px;border-bottom:1px solid #eee;">${tx.amount.toLocaleString()} ${tx.currency || 'HUF'}</td><td style="padding:10px;border-bottom:1px solid #eee;">${tx.note || '-'}</td><td style="padding:10px;border-bottom:1px solid #eee;">Befejezett</td>`;
+          tr.innerHTML = `
+            <td><code style="color: #718096; font-size: 0.9em;">TT-${txId}</code></td>
+            <td>${txDate}</td>
+            <td>${fromUser}</td>
+            <td>${toUser}</td>
+            <td style="font-weight: 600;">${tx.amount.toLocaleString()} ${tx.currency || 'HUF'}</td>
+            <td>${tx.note || '-'}</td>
+            <td><span class="status-badge status-ok">Befejezett</span></td>
+          `;
           tbody.appendChild(tr);
         });
       } catch (err) {
         console.error('Could not load transactions:', err);
         const tbody = document.getElementById('kristof-transaction-body');
         if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#dc2626;">Hiba történt a tranzakciók betöltése során</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#c53030;">Hiba történt a tranzakciók betöltése során</td></tr>';
         }
       }
     }
@@ -128,10 +485,10 @@
       form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken');
         if (!token) {
           msgEl.textContent = '⚠️ Bejelentkezés szükséges';
-          msgEl.style.color = '#dc2626';
+          msgEl.className = 'transfer-msg error full-width';
           return;
         }
 
@@ -141,13 +498,16 @@
 
         if (!toUser || amount < 1) {
           msgEl.textContent = '⚠️ Töltsd ki az összes mezőt helyesen';
-          msgEl.style.color = '#dc2626';
+          msgEl.className = 'transfer-msg error full-width';
           return;
         }
 
         sendBtn.disabled = true;
         msgEl.textContent = 'Küldés...';
-        msgEl.style.color = '#666';
+        msgEl.className = 'transfer-msg full-width';
+        msgEl.style.display = 'block';
+        msgEl.style.background = '#f7fafc';
+        msgEl.style.color = '#718096';
 
         try {
           const response = await fetch('/api/transactions/transfer', {
@@ -163,21 +523,21 @@
 
           if (data.success) {
             msgEl.textContent = '✅ Tranzakció sikeres!';
-            msgEl.style.color = '#16a34a';
+            msgEl.className = 'transfer-msg success full-width';
             form.reset();
             // Reload transactions
             setTimeout(() => {
               loadKristofTransactions();
-              msgEl.textContent = '';
+              msgEl.style.display = 'none';
             }, 2000);
           } else {
             msgEl.textContent = `❌ ${data.message || 'Hiba történt'}`;
-            msgEl.style.color = '#dc2626';
+            msgEl.className = 'transfer-msg error full-width';
           }
         } catch (err) {
           console.error('Transfer error:', err);
           msgEl.textContent = '❌ Hálózati hiba történt';
-          msgEl.style.color = '#dc2626';
+          msgEl.className = 'transfer-msg error full-width';
         } finally {
           sendBtn.disabled = false;
         }
