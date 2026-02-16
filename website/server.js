@@ -74,6 +74,7 @@ const transactionSchema = new mongoose.Schema({
   exchangeRate:   { type: Number },
   type:           { type: String, default: 'transfer', enum: ['transfer', 'exchange'] },
   note:           { type: String, trim: true, maxlength: 140 },
+  gifUrl:         { type: String, trim: true },
   createdAt:      { type: Date, default: Date.now }
 });
 
@@ -92,6 +93,7 @@ const bankAccountSchema = new mongoose.Schema({
   bankName:      { type: String, trim: true, default: 'Logi Bank' },
   currency:      { type: String, required: true, enum: SUPPORTED_CURRENCIES, default: 'HUF' },
   balance:       { type: Number, default: 0 },
+  theme:         { type: String, default: 'standard', enum: ['standard', 'gold', 'metal', 'neon', 'space', 'rose'] },
   isDefault:     { type: Boolean, default: false },
   createdAt:     { type: Date, default: Date.now }
 });
@@ -679,7 +681,7 @@ app.get('/api/users', requireAuth, async (req, res) => {
 
 // Create a transaction (transfer) between users — multi-currency support
 app.post('/api/transactions/transfer', requireAuth, async (req, res) => {
-  const { to, amount, note, fromAccountId } = req.body || {};
+  const { to, amount, note, fromAccountId, gifUrl } = req.body || {};
 
   if (!isDbConnected()) {
     return res.status(503).json({
@@ -803,7 +805,8 @@ app.post('/api/transactions/transfer', requireAuth, async (req, res) => {
       toCurrency,
       exchangeRate,
       type: 'transfer',
-      note: typeof note === 'string' ? note.trim().slice(0, 140) : undefined
+      note: typeof note === 'string' ? note.trim().slice(0, 140) : undefined,
+      gifUrl: typeof gifUrl === 'string' ? gifUrl.trim() : undefined
     });
 
     return res.status(201).json({
@@ -906,6 +909,9 @@ app.post('/api/bank-accounts', requireAuth, async (req, res) => {
   if (!SUPPORTED_CURRENCIES.includes(cur)) {
     return res.status(400).json({ success: false, message: `Nem támogatott valuta: ${cur}` });
   }
+  
+  const VALID_THEMES = ['standard', 'gold', 'metal', 'neon', 'space', 'rose'];
+  const theme = req.body.theme && VALID_THEMES.includes(req.body.theme) ? req.body.theme : 'standard';
 
   try {
     const currentUser = await resolveCurrentDbUser(req.user);
@@ -928,6 +934,7 @@ app.post('/api/bank-accounts', requireAuth, async (req, res) => {
       bankName: bankName ? String(bankName).trim() : 'Logi Bank',
       currency: cur,
       balance: 0,
+      theme: theme,
       isDefault: isFirst
     });
 
@@ -959,8 +966,11 @@ app.put('/api/bank-accounts/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Bankszámla nem található.' });
     }
 
-    const { bankName, isDefault } = req.body || {};
+    const { bankName, isDefault, theme } = req.body || {};
     if (bankName !== undefined) account.bankName = String(bankName).trim();
+    if (theme && ['standard', 'gold', 'metal', 'neon', 'space', 'rose'].includes(theme)) {
+      account.theme = theme;
+    }
     if (isDefault === true) {
       // Unset other defaults
       await BankAccount.updateMany({ user: currentUser._id }, { isDefault: false });

@@ -55,6 +55,55 @@
       background: var(--border-secondary);
       color: var(--text-primary);
     }
+
+    .gif-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .gif-option-btn {
+      border: 1px solid var(--border-primary);
+      border-radius: 10px;
+      padding: 0;
+      background: var(--bg-secondary);
+      cursor: pointer;
+      overflow: hidden;
+      height: 58px;
+    }
+
+    .gif-option-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .selected-gif-wrap {
+      margin-top: 10px;
+    }
+
+    .selected-gif-wrap img {
+      width: 100%;
+      max-height: 140px;
+      border-radius: 10px;
+      object-fit: contain;
+      background: #000;
+      border: 2px solid var(--accent-primary);
+    }
+
+    .clear-gif-btn {
+      margin-top: 8px;
+      background: transparent;
+      border: 1px solid var(--border-primary);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+    }
     
     .transaction-list {
       list-style: none;
@@ -306,6 +355,16 @@
             placeholder="Mi célból küldöd?"
           />
         </div>
+
+        <div class="form-group">
+          <label class="form-label">GIF (opcionális)</label>
+          <div id="gif-picker" class="gif-picker-grid"></div>
+          <div id="selected-gif-wrap" class="selected-gif-wrap" style="display:none;">
+            <img id="selected-gif-preview" alt="Kiválasztott GIF" />
+            <button type="button" id="clear-gif-btn" class="clear-gif-btn">GIF törlése</button>
+          </div>
+          <input type="hidden" id="selected-gif-url" value="" />
+        </div>
         
         <button type="submit" id="sendBtn" class="btn-primary">
           Küldés
@@ -447,6 +506,51 @@
       }
     }
 
+    const GIF_OPTIONS = [
+      'https://media.giphy.com/media/l0Ex6kAKAoFRsFh6M/giphy.gif',
+      'https://media.giphy.com/media/xTiTnqUxyWbsAXq7Ju/giphy.gif',
+      'https://media.giphy.com/media/3o6gDWzmAzrpi5DQU8/giphy.gif',
+      'https://media.giphy.com/media/9HQRIttS5C4Za/giphy.gif',
+      'https://media.giphy.com/media/LdOyjZ7io5Msw/giphy.gif',
+      'https://media.giphy.com/media/hol56wxuWmRrO/giphy.gif',
+      'https://media.giphy.com/media/ADgfsbHcS62Jy/giphy.gif',
+      'https://media.giphy.com/media/26FPLMDDN5fJCVOlG/giphy.gif'
+    ];
+
+    function setSelectedGif(url) {
+      const input = document.getElementById('selected-gif-url');
+      const wrap = document.getElementById('selected-gif-wrap');
+      const preview = document.getElementById('selected-gif-preview');
+      if (!input || !wrap || !preview) return;
+
+      input.value = url || '';
+      if (url) {
+        preview.src = url;
+        wrap.style.display = 'block';
+      } else {
+        preview.removeAttribute('src');
+        wrap.style.display = 'none';
+      }
+    }
+
+    function setupGifPicker() {
+      const picker = document.getElementById('gif-picker');
+      const clearBtn = document.getElementById('clear-gif-btn');
+      if (!picker) return;
+
+      picker.innerHTML = '';
+      GIF_OPTIONS.forEach((url) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'gif-option-btn';
+        btn.innerHTML = `<img src="${url}" alt="GIF opció">`;
+        btn.addEventListener('click', () => setSelectedGif(url));
+        picker.appendChild(btn);
+      });
+
+      clearBtn?.addEventListener('click', () => setSelectedGif(''));
+    }
+
     async function loadTransactions() {
       try {
         const token = localStorage.getItem('authToken');
@@ -507,6 +611,9 @@
           
           const amountClass = isOutgoing ? 'outgoing' : 'incoming';
           const amountPrefix = isOutgoing ? '-' : '+';
+          const gifHtml = tx.gifUrl
+            ? `<div class="gif-container-transaction"><img src="${tx.gifUrl}" alt="Utalás GIF"></div>`
+            : '';
           
           li.innerHTML = `
             <div class="transaction-avatar">${initial}</div>
@@ -516,6 +623,7 @@
                 <span>${txDate}</span>
                 ${tx.note ? ` • ${tx.note}` : ''}
               </div>
+              ${gifHtml}
             </div>
             <div class="transaction-amount ${amountClass}">
               ${amountPrefix}${tx.amount.toLocaleString('hu-HU')} Ft
@@ -545,6 +653,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadTransactions();
       loadUserBalance().then(() => loadAllUsers());
+      setupGifPicker();
       
       // Autocomplete logic
       const toUserInput = document.getElementById('toUser');
@@ -611,6 +720,7 @@
         const toUser = document.getElementById('toUser').value.trim();
         const amount = parseInt(document.getElementById('amount').value);
         const note = document.getElementById('note').value.trim();
+        const gifUrl = document.getElementById('selected-gif-url')?.value || undefined;
 
         if (!toUser || amount < 1) {
           msgEl.textContent = '⚠️ Töltsd ki az összes mezőt helyesen';
@@ -628,7 +738,7 @@
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ to: toUser, amount, note })
+            body: JSON.stringify({ to: toUser, amount, note, gifUrl })
           });
 
           const data = await response.json();
@@ -637,6 +747,7 @@
             msgEl.textContent = `✅ ${data.message || 'Sikeres utalás!'}`;
             msgEl.className = 'message success transfer-msg';
             form.reset();
+            setSelectedGif('');
             
             await loadUserBalance();
             await loadTransactions();

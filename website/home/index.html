@@ -287,6 +287,17 @@
           <input type="text" id="new-account-bank" placeholder="Logi Bank" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
         </div>
         <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Kártya stílusa (téma)</label>
+          <select id="new-account-theme" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;">
+            <option value="standard">Standard (Fehér)</option>
+            <option value="gold">Gold (Arany)</option>
+            <option value="metal">Metal (Fekete)</option>
+            <option value="neon">Neon (Cyberpunk)</option>
+            <option value="space">Space (Űr)</option>
+            <option value="rose">Rose Gold (Rózsaszín)</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
           <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Számlaszám (opcionális, automatikusan generálódik)</label>
           <input type="text" id="new-account-number" placeholder="HU..." style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
         </div>
@@ -423,28 +434,38 @@
       accounts.forEach(acc => {
         const flag = CURRENCY_FLAGS[acc.currency] || '🏳️';
         const card = document.createElement('div');
-        card.style.cssText = 'background:var(--bg-secondary);border:1px solid var(--border-primary);border-radius:16px;padding:20px;position:relative;transition:transform 0.2s;';
-        card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
-        card.onmouseleave = () => card.style.transform = '';
+        const themeClass = acc.theme ? `card-theme-${acc.theme}` : 'card-theme-standard';
+        
+        card.className = themeClass; // Assign CSS class
+        card.style.position = 'relative';
+        card.style.transition = 'transform 0.2s, box-shadow 0.2s';
+        card.style.padding = '20px';
+        card.style.borderRadius = '16px';
+        
+        // Remove manual border/bg styles since CSS handles them now, 
+        // but keeping flex/gap layout.
+        
+        card.onmouseenter = () => { card.style.transform = 'translateY(-2px)'; card.style.boxShadow = 'var(--shadow-md)'; };
+        card.onmouseleave = () => { card.style.transform = ''; card.style.boxShadow = ''; };
 
         card.innerHTML = `
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
             <span style="font-size:28px;">${flag}</span>
             <div>
-              <div style="font-weight:700;font-size:16px;color:var(--text-primary);">${acc.currency}</div>
-              <div style="font-size:12px;color:var(--text-muted);">${acc.bankName || 'Logi Bank'}</div>
+              <div style="font-weight:700;font-size:16px;">${acc.currency}</div>
+              <div class="text-muted" style="font-size:12px;color:rgba(0,0,0,0.6);">${acc.bankName || 'Logi Bank'}</div>
             </div>
-            ${acc.isDefault ? '<span style="margin-left:auto;background:var(--accent-primary);color:#fff;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">ALAPÉRTELMEZETT</span>' : ''}
+            ${acc.isDefault ? '<span style="margin-left:auto;background:rgba(255,255,255,0.3);backdrop-filter:blur(4px);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">DEFAULT</span>' : ''}
           </div>
-          <div style="font-size:24px;font-weight:800;color:var(--text-primary);margin-bottom:8px;">
+          <div style="font-size:24px;font-weight:800;margin-bottom:8px;">
             ${formatCurrency(acc.balance, acc.currency)}
           </div>
-          <div style="font-size:11px;color:var(--text-muted);font-family:monospace;margin-bottom:12px;">
+          <div class="text-muted" style="font-size:11px;font-family:monospace;margin-bottom:12px;color:rgba(0,0,0,0.5);">
             ${acc.accountNumber ? acc.accountNumber.replace(/(.{4})/g, '$1 ').trim() : ''}
           </div>
           <div style="display:flex;gap:8px;">
-            ${!acc.isDefault ? `<button onclick="setDefaultAccount('${acc._id}')" style="flex:1;padding:6px;border-radius:8px;border:1px solid var(--border-primary);background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-size:11px;">⭐ Alapértelmezett</button>` : ''}
-            ${acc.balance === 0 ? `<button onclick="deleteAccount('${acc._id}')" style="padding:6px 10px;border-radius:8px;border:1px solid #e53e3e40;background:#fff5f5;color:#e53e3e;cursor:pointer;font-size:11px;">🗑️</button>` : ''}
+            ${!acc.isDefault ? `<button onclick="setDefaultAccount('${acc._id}')" style="flex:1;padding:6px;border-radius:8px;border:none;background:rgba(255,255,255,0.2);cursor:pointer;font-size:11px;font-weight:600;">⭐ Alapértelmezett</button>` : ''}
+            ${acc.balance === 0 ? `<button onclick="deleteAccount('${acc._id}')" style="padding:6px 10px;border-radius:8px;border:none;background:rgba(239,68,68,0.2);color:#ef4444;cursor:pointer;font-size:11px;">🗑️</button>` : ''}
           </div>
         `;
         container.appendChild(card);
@@ -489,12 +510,18 @@
         const currency = document.getElementById('new-account-currency').value;
         const bankName = document.getElementById('new-account-bank').value.trim();
         const accountNumber = document.getElementById('new-account-number').value.trim();
+        const theme = document.getElementById('new-account-theme').value;
 
         try {
           const res = await fetch('/api/bank-accounts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-            body: JSON.stringify({ currency, bankName: bankName || undefined, accountNumber: accountNumber || undefined })
+            body: JSON.stringify({ 
+              currency, 
+              bankName: bankName || undefined, 
+              accountNumber: accountNumber || undefined,
+              theme: theme 
+            })
           });
           const data = await res.json();
           if (data.success) {

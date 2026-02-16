@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupModalEvents();
     setupAutocomplete();
     setupTransferForm();
+    setupGifPicker(); // Add this
 });
 
 // --- API Functions ---
@@ -172,6 +173,11 @@ function renderTransactions(transactions) {
         const rateInfo = tx.exchangeRate && tx.fromCurrency !== tx.toCurrency
           ? ` · Árfolyam: ${tx.exchangeRate.toFixed(4)}`
           : '';
+        
+        const gifHtml = tx.gifUrl ? `
+            <div class="gif-container-transaction" style="max-width:150px;margin-top:4px;">
+                <img src="${tx.gifUrl}" alt="GIF" style="width:100%;border-radius:8px;">
+            </div>` : '';
 
         // Short ID
         const shortId = tx._id.substring(tx._id.length - 8).toUpperCase();
@@ -181,6 +187,7 @@ function renderTransactions(transactions) {
             <td>
                 <div style="font-weight: 500; color: #2d3748;">${partnerName}</div>
                 <div style="font-size: 12px; color: #718096;">${noteText}${rateInfo}</div>
+                ${gifHtml}
             </td>
             <td>${formattedDate}</td>
             <td style="font-weight: 700; color: ${amountColor};">${formattedAmount}</td>
@@ -315,11 +322,13 @@ function setupTransferForm() {
         const amountInput = document.getElementById('amount');
         const noteInput = document.getElementById('note');
         const accountSelector = document.getElementById('from-account-select');
+        const gifInput = document.getElementById('selected-gif-url');
 
         const recipient = recipientInput ? recipientInput.value.trim() : '';
         const amount = amountInput ? parseFloat(amountInput.value) : 0;
         const note = noteInput ? noteInput.value.trim() : '';
         const fromAccountId = accountSelector ? accountSelector.value : undefined;
+        const gifUrl = gifInput ? gifInput.value : undefined;
 
         // Validation
         if (!recipient) {
@@ -350,7 +359,8 @@ function setupTransferForm() {
                     to: recipient,
                     amount: amount,
                     note: note,
-                    fromAccountId: fromAccountId || undefined
+                    fromAccountId: fromAccountId || undefined,
+                    gifUrl: gifUrl
                 })
             });
 
@@ -469,3 +479,82 @@ function populateAccountSelector() {
 
     amountInput.parentElement.insertBefore(wrapper, amountInput.parentElement.firstChild);
 }
+
+// --- GIF Picker ---
+function setupGifPicker() {
+    // Add GIF picker button and container to transfer modal
+    const noteInput = document.getElementById('note');
+    if (!noteInput || document.getElementById('gif-picker-area')) return;
+
+    const container = document.createElement('div');
+    container.id = 'gif-picker-area';
+    container.style.marginTop = '8px';
+    container.innerHTML = `
+        <button type="button" id="toggle-gif-picker" style="background:#edf2f7;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;color:#4a5568;">
+            + GIF hozzáadása
+        </button>
+        <input type="hidden" id="selected-gif-url">
+        <div id="gif-selection-preview" style="display:none;margin-top:8px;"></div>
+        <div id="gif-grid" style="display:none;grid-template-columns:repeat(4, 1fr);gap:4px;margin-top:8px;max-height:150px;overflow-y:auto;">
+            <!-- GIFs will be injected here -->
+        </div>
+    `;
+
+    noteInput.parentElement.appendChild(container);
+
+    const gifs = [
+        'https://media.giphy.com/media/l0Ex6kAKAoFRsFh6M/giphy.gif', // Make it rain
+        'https://media.giphy.com/media/xTiTnqUxyWbsAXq7Ju/giphy.gif', // Money text
+        'https://media.giphy.com/media/3o6gDWzmAzrpi5DQU8/giphy.gif', // Cash throw
+        'https://media.giphy.com/media/9HQRIttS5C4Za/giphy.gif',      // Rich rich
+        'https://media.giphy.com/media/LdOyjZ7io5Msw/giphy.gif',      // Scrooge McDuck
+        'https://media.giphy.com/media/hol56wxuWmRrO/giphy.gif',      // Counting money
+        'https://media.giphy.com/media/ADgfsbHcS62Jy/giphy.gif',      // Shut up take money
+        'https://media.giphy.com/media/26FPLMDDN5fJCVOlG/giphy.gif'  // Euro bills
+    ];
+
+    document.getElementById('toggle-gif-picker').addEventListener('click', () => {
+        const grid = document.getElementById('gif-grid');
+        if (grid.style.display === 'none') {
+            grid.style.display = 'grid';
+            if (grid.innerHTML.trim() === '<!-- GIFs will be injected here -->') {
+                 grid.innerHTML = '';
+                 gifs.forEach(url => {
+                     const img = document.createElement('img');
+                     img.src = url;
+                     img.style.width = '100%';
+                     img.style.height = '60px';
+                     img.style.objectFit = 'cover';
+                     img.style.cursor = 'pointer';
+                     img.style.borderRadius = '4px';
+                     img.onclick = () => selectGif(url);
+                     grid.appendChild(img);
+                 });
+            }
+        } else {
+            grid.style.display = 'none';
+        }
+    });
+}
+
+function selectGif(url) {
+    document.getElementById('selected-gif-url').value = url;
+    const preview = document.getElementById('gif-selection-preview');
+    preview.style.display = 'block';
+    preview.innerHTML = `
+        <img src="${url}" style="height:80px;border-radius:6px;border:2px solid #38a169;">
+        <div style="font-size:11px;color:#e53e3e;cursor:pointer;margin-top:2px;" onclick="removeGif()">Törlés X</div>
+    `;
+    document.getElementById('gif-grid').style.display = 'none';
+}
+
+function removeGif() {
+    document.getElementById('selected-gif-url').value = '';
+    document.getElementById('gif-selection-preview').style.display = 'none';
+}
+
+// Call this during setup
+document.addEventListener('DOMContentLoaded', () => {
+    // ... existing setup
+    setTimeout(setupGifPicker, 1000); // Wait for modal to handle its own dom logic or call explicitly
+});
