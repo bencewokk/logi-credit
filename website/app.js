@@ -70,14 +70,21 @@ async function renderBuildInfo() {
   const commit = (version && version.commit) ? String(version.commit) : 'unknown';
   const rawDate = (version && version.date) ? String(version.date) : '';
   const date = rawDate ? rawDate.slice(0, 10) : '';
-  const text = date ? `Version: ${commit} (${date})` : `Version: ${commit}`;
+  
+  // Add current time (hours and minutes)
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const time = `${hours}:${minutes}`;
+  
+  const text = date ? `Version: ${commit} (${date}) • ${time}` : `Version: ${commit} • ${time}`;
 
   // login.html uses a custom footer element
   const loginFooter = document.querySelector('.footer-text');
   if (loginFooter) {
     const span = document.createElement('span');
     span.id = 'build-info';
-    span.textContent = ` • ${commit}${date ? ` • ${date}` : ''}`;
+    span.textContent = ` • ${commit}${date ? ` • ${date}` : ''} • ${time}`;
     loginFooter.appendChild(span);
     return;
   }
