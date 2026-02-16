@@ -158,7 +158,7 @@
       <a href="../people/david.html">Auth</a>
       <a href="../people/pali.html">Analytics</a>
       <a href="../people/kristof.html">Utalás</a>
-      <button class="theme-toggle" title="Téma váltás">🌙</button>
+      <button class="theme-toggle" title="Témák">🎨</button>
       <button class="logout-btn" onclick="logout()">Kijelentkezés</button>
     </nav>
   </header>
@@ -909,6 +909,7 @@
     document.addEventListener('click', (e) => {
       if (e.target.id === 'new-account-modal') closeNewAccountModal();
       if (e.target.id === 'exchange-modal') closeExchangeModal();
+      if (e.target.id === 'theme-settings-modal') closeThemeModal();
     });
   </script>
 </body>

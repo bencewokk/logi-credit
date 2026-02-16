@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String, trim: true },
   role: { type: String, default: 'user', enum: ['user', 'admin'] },
   balance: { type: Number, default: 100000 }, // Starting balance in HUF
+  theme: { type: String, default: 'light', enum: ['light', 'dark', 'ocean', 'midnight', 'rosegold', 'neon'] },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date }
 });
@@ -635,6 +636,7 @@ app.get('/api/user/me', requireAuth, async (req, res) => {
         picture: dbUser.picture,
         role: dbUser.role,
         balance: dbUser.balance || 0,
+        theme: dbUser.theme || 'light',
         bankAccounts: bankAccounts,
         createdAt: dbUser.createdAt
       }
@@ -645,6 +647,33 @@ app.get('/api/user/me', requireAuth, async (req, res) => {
       success: false,
       message: 'Szerverhiba történt'
     });
+  }
+});
+
+// Update user preferences (theme, etc.)
+app.put('/api/user/preferences', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({ success: false, message: 'Adatbázis nem elérhető' });
+  }
+  try {
+    const { theme } = req.body;
+    const validThemes = ['light', 'dark', 'ocean', 'midnight', 'rosegold', 'neon'];
+    const updates = {};
+    if (theme && validThemes.includes(theme)) {
+      updates.theme = theme;
+    }
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: 'Érvénytelen beállítások' });
+    }
+    const dbUser = await resolveCurrentDbUser(req.user);
+    if (!dbUser) {
+      return res.status(404).json({ success: false, message: 'Felhasználó nem található' });
+    }
+    await User.updateOne({ _id: dbUser._id }, { $set: updates });
+    return res.json({ success: true, ...updates });
+  } catch (error) {
+    console.error('❌ Preferences error:', error);
+    return res.status(500).json({ success: false, message: 'Szerverhiba' });
   }
 });
 
