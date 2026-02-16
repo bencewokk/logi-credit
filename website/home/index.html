@@ -167,21 +167,58 @@
     <!-- Welcome Card -->
     <div class="welcome-card">
       <h1>Üdvözöljük, <span id="user-name">Felhasználó</span>!</h1>
-      <p>Egyenleg: <strong id="user-balance">0</strong> HUF</p>
+      <p>Összesített egyenleg: <strong id="user-balance">0</strong> <span id="user-balance-currency">HUF</span></p>
       
       <div class="quick-actions">
         <a href="../people/kristof.html" class="quick-action">
           <span class="icon">💸</span>
           Új utalás
         </a>
+        <button class="quick-action" onclick="openExchangeModal()">
+          <span class="icon">💱</span>
+          Valutaváltás
+        </button>
+        <button class="quick-action" onclick="openNewAccountModal()">
+          <span class="icon">🏦</span>
+          Új számla
+        </button>
         <a href="../people/pali.html" class="quick-action">
           <span class="icon">📊</span>
           Statisztikák
         </a>
-        <a href="../people/david.html" class="quick-action">
-          <span class="icon">🔐</span>
-          Biztonság
-        </a>
+      </div>
+    </div>
+
+    <!-- Bank Accounts Section -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h2 class="section-title">
+        <span class="icon">🏦</span>
+        Bankszámlák
+        <button onclick="openNewAccountModal()" style="margin-left:auto;background:var(--accent-primary);color:#fff;border:none;border-radius:10px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;">+ Új számla</button>
+      </h2>
+      <div id="bank-accounts-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:16px;">
+        <div style="text-align:center;padding:24px;color:var(--text-muted);">Betöltés...</div>
+      </div>
+    </div>
+
+    <!-- Exchange Rates Widget -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h2 class="section-title">
+        <span class="icon">📈</span>
+        Valós idejű árfolyamok
+        <button onclick="loadExchangeRates()" style="margin-left:auto;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-primary);border-radius:10px;padding:6px 14px;cursor:pointer;font-size:12px;">🔄 Frissítés</button>
+      </h2>
+      <div id="exchange-rate-base-selector" style="margin:12px 0;">
+        <label style="font-size:13px;color:var(--text-muted);">Bázis valuta: </label>
+        <select id="rate-base-currency" onchange="loadExchangeRates()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:13px;">
+          <option value="HUF">HUF</option>
+          <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
+        </select>
+        <span id="rate-last-updated" style="font-size:11px;color:var(--text-muted);margin-left:12px;"></span>
+      </div>
+      <div id="exchange-rates-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
+        <div style="text-align:center;padding:24px;color:var(--text-muted);grid-column:1/-1;">Betöltés...</div>
       </div>
     </div>
 
@@ -235,11 +272,89 @@
     </div>
   </main>
 
+  <!-- New Bank Account Modal -->
+  <div id="new-account-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center;">
+    <div style="background:var(--bg-primary);border-radius:20px;padding:32px;max-width:440px;width:90%;box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+      <h3 style="margin:0 0 20px;font-size:20px;">🏦 Új bankszámla</h3>
+      <form id="new-account-form">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Valuta *</label>
+          <select id="new-account-currency" required style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;">
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Bank neve</label>
+          <input type="text" id="new-account-bank" placeholder="Logi Bank" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Számlaszám (opcionális, automatikusan generálódik)</label>
+          <input type="text" id="new-account-number" placeholder="HU..." style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
+        </div>
+        <div id="new-account-error" style="display:none;color:#e53e3e;background:#fff5f5;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+          <button type="button" onclick="closeNewAccountModal()" style="padding:10px 20px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);cursor:pointer;font-size:14px;">Mégse</button>
+          <button type="submit" style="padding:10px 20px;border-radius:10px;border:none;background:var(--accent-primary);color:#fff;cursor:pointer;font-weight:600;font-size:14px;">Létrehozás</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Exchange (Currency Convert) Modal -->
+  <div id="exchange-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center;">
+    <div style="background:var(--bg-primary);border-radius:20px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+      <h3 style="margin:0 0 20px;font-size:20px;">💱 Valutaváltás</h3>
+      <form id="exchange-form">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Forrás számla</label>
+          <select id="exchange-from-account" required onchange="updateExchangePreview()" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;">
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Cél számla</label>
+          <select id="exchange-to-account" required onchange="updateExchangePreview()" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;">
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-muted);">Összeg</label>
+          <input type="number" id="exchange-amount" required min="0.01" step="0.01" placeholder="0" oninput="updateExchangePreview()" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);font-size:14px;box-sizing:border-box;">
+        </div>
+        <div id="exchange-preview" style="display:none;background:var(--bg-tertiary);border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">Előnézet</div>
+          <div id="exchange-preview-text" style="font-size:18px;font-weight:700;color:var(--accent-primary);"></div>
+          <div id="exchange-preview-rate" style="font-size:12px;color:var(--text-muted);margin-top:4px;"></div>
+        </div>
+        <div id="exchange-error" style="display:none;color:#e53e3e;background:#fff5f5;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+          <button type="button" onclick="closeExchangeModal()" style="padding:10px 20px;border-radius:10px;border:1px solid var(--border-primary);background:var(--bg-secondary);color:var(--text-primary);cursor:pointer;font-size:14px;">Mégse</button>
+          <button type="submit" id="exchange-submit-btn" style="padding:10px 20px;border-radius:10px;border:none;background:var(--accent-primary);color:#fff;cursor:pointer;font-weight:600;font-size:14px;">Váltás</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="../theme.js"></script>
   <script src="../app.js"></script>
   <script>
     let currentUsername = '';
+    let userBankAccounts = [];
+    let cachedRates = {};
+
+    // --- Currency flag/symbol helpers ---
+    const CURRENCY_FLAGS = {
+      HUF:'🇭🇺',EUR:'🇪🇺',USD:'🇺🇸',GBP:'🇬🇧',CHF:'🇨🇭',CZK:'🇨🇿',PLN:'🇵🇱',RON:'🇷🇴',
+      SEK:'🇸🇪',NOK:'🇳🇴',DKK:'🇩🇰',JPY:'🇯🇵',CNY:'🇨🇳',AUD:'🇦🇺',CAD:'🇨🇦',NZD:'🇳🇿',
+      TRY:'🇹🇷',BRL:'🇧🇷',INR:'🇮🇳',KRW:'🇰🇷',MXN:'🇲🇽',ZAR:'🇿🇦',SGD:'🇸🇬',HKD:'🇭🇰',
+      THB:'🇹🇭',ILS:'🇮🇱',AED:'🇦🇪',SAR:'🇸🇦',RUB:'🇷🇺',BGN:'🇧🇬',HRK:'🇭🇷',ISK:'🇮🇸'
+    };
+
+    function formatCurrency(amount, currency = 'HUF') {
+      try {
+        return new Intl.NumberFormat('hu-HU', { style:'currency', currency, maximumFractionDigits: currency === 'HUF' || currency === 'JPY' ? 0 : 2 }).format(amount);
+      } catch {
+        return `${amount.toLocaleString('hu-HU')} ${currency}`;
+      }
+    }
 
     function logout() {
       if (confirm('Biztosan ki szeretnél jelentkezni?')) {
@@ -250,9 +365,16 @@
       }
     }
 
+    function getToken() {
+      return localStorage.getItem('authToken');
+    }
+
+    // ========================
+    // LOAD USER DATA + ACCOUNTS
+    // ========================
     async function loadUserData() {
       try {
-        const token = localStorage.getItem('authToken');
+        const token = getToken();
         if (!token) return;
 
         const response = await fetch('/api/user/me', {
@@ -263,15 +385,21 @@
           const data = await response.json();
           if (data.user) {
             currentUsername = data.user.username || data.user.email;
-            
+            userBankAccounts = data.user.bankAccounts || [];
+
             const nameEl = document.getElementById('user-name');
             if (nameEl) nameEl.textContent = data.user.name || data.user.username;
-            
+
+            // Show aggregated balance
             const balanceEl = document.getElementById('user-balance');
             if (balanceEl) {
               const balance = data.user.balance || 0;
               balanceEl.textContent = balance.toLocaleString('hu-HU');
             }
+
+            renderBankAccounts(userBankAccounts);
+            populateExchangeSelectors(userBankAccounts);
+            populateRateBaseSelector(userBankAccounts);
           }
         }
       } catch (error) {
@@ -279,9 +407,362 @@
       }
     }
 
+    // ========================
+    // BANK ACCOUNTS RENDERING
+    // ========================
+    function renderBankAccounts(accounts) {
+      const container = document.getElementById('bank-accounts-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!accounts || accounts.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);grid-column:1/-1;">Nincs bankszámla. Hozz létre egyet!</div>';
+        return;
+      }
+
+      accounts.forEach(acc => {
+        const flag = CURRENCY_FLAGS[acc.currency] || '🏳️';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--bg-secondary);border:1px solid var(--border-primary);border-radius:16px;padding:20px;position:relative;transition:transform 0.2s;';
+        card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+        card.onmouseleave = () => card.style.transform = '';
+
+        card.innerHTML = `
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:28px;">${flag}</span>
+            <div>
+              <div style="font-weight:700;font-size:16px;color:var(--text-primary);">${acc.currency}</div>
+              <div style="font-size:12px;color:var(--text-muted);">${acc.bankName || 'Logi Bank'}</div>
+            </div>
+            ${acc.isDefault ? '<span style="margin-left:auto;background:var(--accent-primary);color:#fff;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">ALAPÉRTELMEZETT</span>' : ''}
+          </div>
+          <div style="font-size:24px;font-weight:800;color:var(--text-primary);margin-bottom:8px;">
+            ${formatCurrency(acc.balance, acc.currency)}
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);font-family:monospace;margin-bottom:12px;">
+            ${acc.accountNumber ? acc.accountNumber.replace(/(.{4})/g, '$1 ').trim() : ''}
+          </div>
+          <div style="display:flex;gap:8px;">
+            ${!acc.isDefault ? `<button onclick="setDefaultAccount('${acc._id}')" style="flex:1;padding:6px;border-radius:8px;border:1px solid var(--border-primary);background:var(--bg-tertiary);color:var(--text-primary);cursor:pointer;font-size:11px;">⭐ Alapértelmezett</button>` : ''}
+            ${acc.balance === 0 ? `<button onclick="deleteAccount('${acc._id}')" style="padding:6px 10px;border-radius:8px;border:1px solid #e53e3e40;background:#fff5f5;color:#e53e3e;cursor:pointer;font-size:11px;">🗑️</button>` : ''}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ========================
+    // NEW ACCOUNT MODAL
+    // ========================
+    async function openNewAccountModal() {
+      const modal = document.getElementById('new-account-modal');
+      modal.style.display = 'flex';
+
+      // Populate currency dropdown
+      const select = document.getElementById('new-account-currency');
+      if (select.options.length <= 1) {
+        try {
+          const resp = await fetch('/api/currencies', { headers: { 'Authorization': `Bearer ${getToken()}` } });
+          const data = await resp.json();
+          select.innerHTML = '';
+          (data.currencies || []).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = `${CURRENCY_FLAGS[c] || ''} ${c}`;
+            select.appendChild(opt);
+          });
+        } catch { /* fallback */ }
+      }
+    }
+
+    function closeNewAccountModal() {
+      document.getElementById('new-account-modal').style.display = 'none';
+      document.getElementById('new-account-error').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('new-account-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errDiv = document.getElementById('new-account-error');
+        errDiv.style.display = 'none';
+
+        const currency = document.getElementById('new-account-currency').value;
+        const bankName = document.getElementById('new-account-bank').value.trim();
+        const accountNumber = document.getElementById('new-account-number').value.trim();
+
+        try {
+          const res = await fetch('/api/bank-accounts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+            body: JSON.stringify({ currency, bankName: bankName || undefined, accountNumber: accountNumber || undefined })
+          });
+          const data = await res.json();
+          if (data.success) {
+            closeNewAccountModal();
+            await loadUserData();
+          } else {
+            errDiv.textContent = data.message || 'Hiba történt.';
+            errDiv.style.display = 'block';
+          }
+        } catch (err) {
+          errDiv.textContent = 'Hálózati hiba.';
+          errDiv.style.display = 'block';
+        }
+      });
+    });
+
+    async function setDefaultAccount(accountId) {
+      try {
+        await fetch(`/api/bank-accounts/${accountId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify({ isDefault: true })
+        });
+        await loadUserData();
+      } catch (err) { console.error(err); }
+    }
+
+    async function deleteAccount(accountId) {
+      if (!confirm('Biztosan törölni szeretnéd ezt a bankszámlát?')) return;
+      try {
+        const res = await fetch(`/api/bank-accounts/${accountId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          await loadUserData();
+        } else {
+          alert(data.message || 'Nem sikerült törölni.');
+        }
+      } catch (err) { alert('Hálózati hiba.'); }
+    }
+
+    // ========================
+    // EXCHANGE RATES
+    // ========================
+    function populateRateBaseSelector(accounts) {
+      const select = document.getElementById('rate-base-currency');
+      if (!select) return;
+      // Add unique currencies from user accounts
+      const existingVals = new Set([...select.options].map(o => o.value));
+      accounts.forEach(acc => {
+        if (!existingVals.has(acc.currency)) {
+          const opt = document.createElement('option');
+          opt.value = acc.currency;
+          opt.textContent = acc.currency;
+          select.appendChild(opt);
+          existingVals.add(acc.currency);
+        }
+      });
+    }
+
+    async function loadExchangeRates() {
+      const base = document.getElementById('rate-base-currency')?.value || 'HUF';
+      const grid = document.getElementById('exchange-rates-grid');
+      grid.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);grid-column:1/-1;">⏳ Betöltés...</div>';
+
+      try {
+        const resp = await fetch(`/api/exchange-rates?base=${base}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        cachedRates = data.rates || {};
+        grid.innerHTML = '';
+
+        const mainCurrencies = ['EUR','USD','GBP','CHF','HUF','CZK','PLN','RON','JPY','CNY','AUD','CAD'];
+        const toShow = mainCurrencies.filter(c => c !== base && cachedRates[c]);
+
+        toShow.forEach(cur => {
+          const rate = cachedRates[cur];
+          const flag = CURRENCY_FLAGS[cur] || '';
+          const div = document.createElement('div');
+          div.style.cssText = 'background:var(--bg-secondary);border:1px solid var(--border-primary);border-radius:12px;padding:12px;text-align:center;';
+          div.innerHTML = `
+            <div style="font-size:20px;margin-bottom:4px;">${flag}</div>
+            <div style="font-weight:700;font-size:14px;">${cur}</div>
+            <div style="font-size:16px;font-weight:800;color:var(--accent-primary);margin-top:4px;">${rate < 0.01 ? rate.toFixed(6) : rate < 1 ? rate.toFixed(4) : rate < 100 ? rate.toFixed(3) : rate.toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--text-muted);">1 ${base} =</div>
+          `;
+          grid.appendChild(div);
+        });
+
+        // Show "more" button
+        const remaining = Object.keys(cachedRates).filter(c => c !== base && !toShow.includes(c));
+        if (remaining.length > 0) {
+          const more = document.createElement('div');
+          more.style.cssText = 'grid-column:1/-1;text-align:center;padding:8px;';
+          more.innerHTML = `<button onclick="showAllRates('${base}')" style="background:var(--bg-tertiary);border:1px solid var(--border-primary);border-radius:10px;padding:8px 16px;cursor:pointer;color:var(--text-primary);font-size:12px;">+ ${remaining.length} további valuta</button>`;
+          grid.appendChild(more);
+        }
+
+        const updatedEl = document.getElementById('rate-last-updated');
+        if (updatedEl) updatedEl.textContent = `Frissítve: ${new Date().toLocaleTimeString('hu-HU')}`;
+      } catch (err) {
+        grid.innerHTML = `<div style="text-align:center;padding:16px;color:#e53e3e;grid-column:1/-1;">Hiba: ${err.message}</div>`;
+      }
+    }
+
+    function showAllRates(base) {
+      const grid = document.getElementById('exchange-rates-grid');
+      grid.innerHTML = '';
+      Object.entries(cachedRates)
+        .filter(([c]) => c !== base)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([cur, rate]) => {
+          const flag = CURRENCY_FLAGS[cur] || '';
+          const div = document.createElement('div');
+          div.style.cssText = 'background:var(--bg-secondary);border:1px solid var(--border-primary);border-radius:12px;padding:12px;text-align:center;';
+          div.innerHTML = `
+            <div style="font-size:20px;margin-bottom:4px;">${flag}</div>
+            <div style="font-weight:700;font-size:14px;">${cur}</div>
+            <div style="font-size:16px;font-weight:800;color:var(--accent-primary);margin-top:4px;">${rate < 0.01 ? rate.toFixed(6) : rate < 1 ? rate.toFixed(4) : rate < 100 ? rate.toFixed(3) : rate.toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--text-muted);">1 ${base} =</div>
+          `;
+          grid.appendChild(div);
+        });
+    }
+
+    // ========================
+    // EXCHANGE (CONVERT) MODAL
+    // ========================
+    function populateExchangeSelectors(accounts) {
+      const fromSel = document.getElementById('exchange-from-account');
+      const toSel = document.getElementById('exchange-to-account');
+      if (!fromSel || !toSel) return;
+
+      fromSel.innerHTML = '';
+      toSel.innerHTML = '';
+
+      accounts.forEach(acc => {
+        const label = `${CURRENCY_FLAGS[acc.currency] || ''} ${acc.currency} — ${formatCurrency(acc.balance, acc.currency)} (${acc.bankName || 'Logi Bank'})`;
+        
+        const optFrom = document.createElement('option');
+        optFrom.value = acc._id;
+        optFrom.textContent = label;
+        optFrom.dataset.currency = acc.currency;
+        optFrom.dataset.balance = acc.balance;
+        fromSel.appendChild(optFrom);
+
+        const optTo = document.createElement('option');
+        optTo.value = acc._id;
+        optTo.textContent = label;
+        optTo.dataset.currency = acc.currency;
+        toSel.appendChild(optTo);
+      });
+
+      // Default: select second account in "to" if available
+      if (toSel.options.length > 1) toSel.selectedIndex = 1;
+    }
+
+    function openExchangeModal() {
+      document.getElementById('exchange-modal').style.display = 'flex';
+      document.getElementById('exchange-error').style.display = 'none';
+      document.getElementById('exchange-preview').style.display = 'none';
+      populateExchangeSelectors(userBankAccounts);
+    }
+
+    function closeExchangeModal() {
+      document.getElementById('exchange-modal').style.display = 'none';
+    }
+
+    async function updateExchangePreview() {
+      const fromSel = document.getElementById('exchange-from-account');
+      const toSel = document.getElementById('exchange-to-account');
+      const amountInput = document.getElementById('exchange-amount');
+      const preview = document.getElementById('exchange-preview');
+      const previewText = document.getElementById('exchange-preview-text');
+      const previewRate = document.getElementById('exchange-preview-rate');
+
+      const amount = parseFloat(amountInput?.value);
+      if (!amount || amount <= 0) { preview.style.display = 'none'; return; }
+
+      const fromCur = fromSel?.selectedOptions[0]?.dataset.currency;
+      const toCur = toSel?.selectedOptions[0]?.dataset.currency;
+      if (!fromCur || !toCur) return;
+
+      if (fromCur === toCur) {
+        previewText.textContent = `${formatCurrency(amount, fromCur)} → ${formatCurrency(amount, toCur)}`;
+        previewRate.textContent = 'Azonos valuta — nincs átváltás';
+        preview.style.display = 'block';
+        return;
+      }
+
+      try {
+        const resp = await fetch(`/api/exchange-rates?base=${fromCur}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const data = await resp.json();
+        if (data.success && data.rates[toCur]) {
+          const rate = data.rates[toCur];
+          const converted = Math.round(amount * rate * 100) / 100;
+          previewText.textContent = `${formatCurrency(amount, fromCur)} → ${formatCurrency(converted, toCur)}`;
+          previewRate.textContent = `Árfolyam: 1 ${fromCur} = ${rate.toFixed(4)} ${toCur}`;
+          preview.style.display = 'block';
+        }
+      } catch { /* silent */ }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('exchange-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errDiv = document.getElementById('exchange-error');
+        errDiv.style.display = 'none';
+
+        const fromAccountId = document.getElementById('exchange-from-account').value;
+        const toAccountId = document.getElementById('exchange-to-account').value;
+        const amount = parseFloat(document.getElementById('exchange-amount').value);
+
+        if (!amount || amount <= 0) {
+          errDiv.textContent = 'Adj meg érvényes összeget!';
+          errDiv.style.display = 'block';
+          return;
+        }
+
+        if (fromAccountId === toAccountId) {
+          errDiv.textContent = 'A forrás és cél számla nem lehet ugyanaz!';
+          errDiv.style.display = 'block';
+          return;
+        }
+
+        const btn = document.getElementById('exchange-submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Váltás...';
+
+        try {
+          const res = await fetch('/api/exchange/convert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+            body: JSON.stringify({ fromAccountId, toAccountId, amount })
+          });
+          const data = await res.json();
+          if (data.success) {
+            closeExchangeModal();
+            await loadUserData();
+            await loadRecentTransactions();
+            alert(data.message);
+          } else {
+            errDiv.textContent = data.message || 'Hiba történt a váltás során.';
+            errDiv.style.display = 'block';
+          }
+        } catch (err) {
+          errDiv.textContent = 'Hálózati hiba.';
+          errDiv.style.display = 'block';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Váltás';
+        }
+      });
+    });
+
+    // ========================
+    // TRANSACTIONS
+    // ========================
     async function loadRecentTransactions() {
       try {
-        const token = localStorage.getItem('authToken');
+        const token = getToken();
         if (!token) return;
 
         const response = await fetch('/api/transactions?limit=5', {
@@ -306,17 +787,24 @@
           const fromUsername = tx.fromUser?.username || tx.fromUser?.email || '';
           const toUsername = tx.toUser?.username || tx.toUser?.email || '';
           
-          const isOutgoing = fromUsername === currentUsername;
-          const partnerName = isOutgoing ? toUsername : fromUsername;
-          const initial = partnerName.charAt(0).toUpperCase();
+          const isExchange = tx.type === 'exchange';
+          const isOutgoing = !isExchange && (fromUsername === currentUsername);
+          const partnerName = isExchange ? 'Valutaváltás' : (isOutgoing ? toUsername : fromUsername);
+          const initial = isExchange ? '💱' : partnerName.charAt(0).toUpperCase();
           
-          if (isOutgoing) sentCount++;
+          if (isExchange) { /* no count */ }
+          else if (isOutgoing) sentCount++;
           else receivedCount++;
           
           const txDate = new Date(tx.createdAt).toLocaleDateString('hu-HU', {
             month: 'short',
             day: 'numeric'
           });
+
+          const displayCurrency = tx.currency || tx.toCurrency || 'HUF';
+          const amountText = isExchange
+            ? `${formatCurrency(tx.originalAmount, tx.fromCurrency)} → ${formatCurrency(tx.amount, tx.toCurrency)}`
+            : `${isOutgoing ? '-' : '+'}${formatCurrency(tx.amount, displayCurrency)}`;
           
           const div = document.createElement('div');
           div.className = 'transaction-mini';
@@ -324,21 +812,19 @@
             <div class="avatar">${initial}</div>
             <div class="details">
               <div class="name">${partnerName}</div>
-              <div class="date">${txDate}</div>
+              <div class="date">${txDate}${tx.fromCurrency && tx.toCurrency && tx.fromCurrency !== tx.toCurrency ? ` · ${tx.fromCurrency}→${tx.toCurrency}` : ''}</div>
             </div>
-            <div class="amount ${isOutgoing ? 'negative' : 'positive'}">
-              ${isOutgoing ? '-' : '+'}${tx.amount.toLocaleString('hu-HU')} Ft
+            <div class="amount ${isExchange ? '' : (isOutgoing ? 'negative' : 'positive')}" style="${isExchange ? 'color:var(--accent-primary);font-size:12px;' : ''}">
+              ${amountText}
             </div>
           `;
           container.appendChild(div);
         });
 
-        // Update stats
         document.getElementById('stat-total').textContent = data.transactions.length;
         document.getElementById('stat-sent').textContent = sentCount;
         document.getElementById('stat-received').textContent = receivedCount;
 
-        // Simple chart
         renderChart(data.transactions);
       } catch (error) {
         console.error('Failed to load transactions:', error);
@@ -349,7 +835,6 @@
       const ctx = document.getElementById('volumeChart');
       if (!ctx) return;
 
-      // Group by day
       const dailyData = {};
       transactions.forEach(tx => {
         const day = new Date(tx.createdAt).toLocaleDateString('hu-HU', { weekday: 'short' });
@@ -364,7 +849,7 @@
         data: {
           labels: labels.length ? labels : ['Nincs adat'],
           datasets: [{
-            label: 'Forgalom (HUF)',
+            label: 'Forgalom',
             data: values.length ? values : [0],
             backgroundColor: 'rgba(0, 212, 170, 0.6)',
             borderColor: 'rgba(0, 212, 170, 1)',
@@ -375,27 +860,28 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
+          plugins: { legend: { display: false } },
           scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: 'rgba(255,255,255,0.1)' },
-              ticks: { color: '#888' }
-            },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#888' }
-            }
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#888' } },
+            x: { grid: { display: false }, ticks: { color: '#888' } }
           }
         }
       });
     }
 
+    // ========================
+    // INIT
+    // ========================
     document.addEventListener('DOMContentLoaded', async () => {
       await loadUserData();
       await loadRecentTransactions();
+      loadExchangeRates();
+    });
+
+    // Close modals on outside click
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'new-account-modal') closeNewAccountModal();
+      if (e.target.id === 'exchange-modal') closeExchangeModal();
     });
   </script>
 </body>

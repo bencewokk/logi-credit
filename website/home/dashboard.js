@@ -4,11 +4,22 @@
  */
 
 // --- Formatters ---
-const currencyFormatter = new Intl.NumberFormat('hu-HU', {
-  style: 'currency',
-  currency: 'HUF',
-  maximumFractionDigits: 0
-});
+function formatCurrency(amount, currency = 'HUF') {
+  try {
+    return new Intl.NumberFormat('hu-HU', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: currency === 'HUF' || currency === 'JPY' ? 0 : 2
+    }).format(amount);
+  } catch {
+    return `${amount.toLocaleString('hu-HU')} ${currency}`;
+  }
+}
+
+// Legacy HUF-only formatter for backward compat
+const currencyFormatter = {
+  format: (amount) => formatCurrency(amount, 'HUF')
+};
 
 const dateFormatter = new Intl.DateTimeFormat('hu-HU', {
   year: 'numeric',
@@ -21,6 +32,14 @@ const dateFormatter = new Intl.DateTimeFormat('hu-HU', {
 // --- State Management ---
 let allUsers = [];     // Stores { username, email, name, ... } for filtered search
 let currentUserId = null; // Stores Logged-in User ID (MongoDB _id)
+let userBankAccounts = []; // Bank accounts for the current user
+
+const CURRENCY_FLAGS = {
+  HUF:'🇭🇺',EUR:'🇪🇺',USD:'🇺🇸',GBP:'🇬🇧',CHF:'🇨🇭',CZK:'🇨🇿',PLN:'🇵🇱',RON:'🇷🇴',
+  SEK:'🇸🇪',NOK:'🇳🇴',DKK:'🇩🇰',JPY:'🇯🇵',CNY:'🇨🇳',AUD:'🇦🇺',CAD:'🇨🇦',NZD:'🇳🇿',
+  TRY:'🇹🇷',BRL:'🇧🇷',INR:'🇮🇳',KRW:'🇰🇷',MXN:'🇲🇽',ZAR:'🇿🇦',SGD:'🇸🇬',HKD:'🇭🇰',
+  THB:'🇹🇭',ILS:'🇮🇱',AED:'🇦🇪',SAR:'🇸🇦',RUB:'🇷🇺',BGN:'🇧🇬',HRK:'🇭🇷',ISK:'🇮🇸'
+};
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -50,6 +69,7 @@ async function initializeUser() {
             const data = await response.json();
             if (data.user) {
                 currentUserId = data.user._id;
+                userBankAccounts = data.user.bankAccounts || [];
                 // Update UI Name
                 const nameEl = document.getElementById('user-name');
                 if (nameEl) nameEl.textContent = data.user.name || data.user.username;
@@ -60,6 +80,9 @@ async function initializeUser() {
                     const balance = data.user.balance || 0;
                     balanceEl.textContent = balance.toLocaleString('hu-HU');
                 }
+
+                // Populate bank account selector in transfer modal if exists
+                populateAccountSelector();
             }
         }
     } catch (error) {
@@ -128,21 +151,27 @@ function renderTransactions(transactions) {
         const tr = document.createElement('tr');
 
         // Determine Direction
-        // If I am fromUser -> Outgoing (-)
-        // If I am toUser   -> Incoming (+)
-        const isOutgoing = tx.fromUser._id === currentUserId;
+        const isExchange = tx.type === 'exchange';
+        const isOutgoing = !isExchange && (tx.fromUser._id === currentUserId);
         
         // Partner Name logic
-        const partner = isOutgoing ? tx.toUser : tx.fromUser;
-        const partnerName = partner ? (partner.name || partner.username || partner.email) : 'Ismeretlen';
+        const partner = isExchange ? null : (isOutgoing ? tx.toUser : tx.fromUser);
+        const partnerName = isExchange ? '💱 Valutaváltás' : (partner ? (partner.name || partner.username || partner.email) : 'Ismeretlen');
 
         // Styles & Formatting
-        const amountClass = isOutgoing ? 'text-red-600' : 'text-green-600'; 
-        const amountColor = isOutgoing ? '#e53e3e' : '#38a169';
-        const prefix = isOutgoing ? '-' : '+';
+        const amountColor = isExchange ? '#667eea' : (isOutgoing ? '#e53e3e' : '#38a169');
+        const prefix = isExchange ? '' : (isOutgoing ? '-' : '+');
         const formattedDate = dateFormatter.format(new Date(tx.createdAt));
-        const formattedAmount = `${prefix}${currencyFormatter.format(tx.amount)}`;
-        const noteText = tx.note || 'Tranzakció';
+        
+        const displayCurrency = tx.currency || tx.toCurrency || 'HUF';
+        const formattedAmount = isExchange
+          ? `${formatCurrency(tx.originalAmount, tx.fromCurrency)} → ${formatCurrency(tx.amount, tx.toCurrency)}`
+          : `${prefix}${formatCurrency(tx.amount, displayCurrency)}`;
+        
+        const noteText = tx.note || (isExchange ? `${tx.fromCurrency} → ${tx.toCurrency}` : 'Tranzakció');
+        const rateInfo = tx.exchangeRate && tx.fromCurrency !== tx.toCurrency
+          ? ` · Árfolyam: ${tx.exchangeRate.toFixed(4)}`
+          : '';
 
         // Short ID
         const shortId = tx._id.substring(tx._id.length - 8).toUpperCase();
@@ -151,7 +180,7 @@ function renderTransactions(transactions) {
             <td><code style="color: #718096; font-size: 0.9em;">${shortId}</code></td>
             <td>
                 <div style="font-weight: 500; color: #2d3748;">${partnerName}</div>
-                <div style="font-size: 12px; color: #718096;">${noteText}</div>
+                <div style="font-size: 12px; color: #718096;">${noteText}${rateInfo}</div>
             </td>
             <td>${formattedDate}</td>
             <td style="font-weight: 700; color: ${amountColor};">${formattedAmount}</td>
@@ -283,12 +312,14 @@ function setupTransferForm() {
 
         // Gather Data
         const recipientInput = document.getElementById('recipient-search');
-        const amountInput = document.getElementById('amount'); // Standard ID assumption
-        const noteInput = document.getElementById('note');     // Standard ID assumption
+        const amountInput = document.getElementById('amount');
+        const noteInput = document.getElementById('note');
+        const accountSelector = document.getElementById('from-account-select');
 
         const recipient = recipientInput ? recipientInput.value.trim() : '';
-        const amount = amountInput ? parseInt(amountInput.value) : 0;
+        const amount = amountInput ? parseFloat(amountInput.value) : 0;
         const note = noteInput ? noteInput.value.trim() : '';
+        const fromAccountId = accountSelector ? accountSelector.value : undefined;
 
         // Validation
         if (!recipient) {
@@ -316,9 +347,10 @@ function setupTransferForm() {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    to: recipient, // Sending username/email string
+                    to: recipient,
                     amount: amount,
-                    note: note
+                    note: note,
+                    fromAccountId: fromAccountId || undefined
                 })
             });
 
@@ -371,14 +403,11 @@ function clearError() {
 // --- Chart ---
 function renderChart(transactions) {
     const canvas = document.getElementById('volumeChart');
-    // Check if Chart.js is loaded
     if (!canvas || typeof Chart === 'undefined') return;
 
-    // Prepare data: Aggregate by Date (last 7 days)
     const dailyVolume = {};
     const today = new Date();
     
-    // Initialize last 7 days with 0
     for(let i=6; i>=0; i--) {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
@@ -386,7 +415,6 @@ function renderChart(transactions) {
         dailyVolume[key] = 0;
     }
 
-    // Fill data
     transactions.forEach(tx => {
         const dateKey = new Date(tx.createdAt).toISOString().split('T')[0];
         if (dailyVolume[dateKey] !== undefined) {
@@ -394,22 +422,17 @@ function renderChart(transactions) {
         }
     });
 
-    // Formatting for Chart
     const labels = Object.keys(dailyVolume).map(d => 
         new Date(d).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })
     );
     const dataPoints = Object.values(dailyVolume);
-
-    // If chart instance exists, destroy it (rudimentary check, or just overwrite)
-    // Note: In a real app we'd track the instance globally to destroy it properly.
-    // For now assuming full page reload per best practice on this dashboard.
 
     new Chart(canvas, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Forgalom (HUF)',
+                label: 'Forgalom',
                 data: dataPoints,
                 borderColor: '#667eea',
                 backgroundColor: 'rgba(102, 126, 234, 0.1)',
@@ -424,4 +447,25 @@ function renderChart(transactions) {
             scales: { y: { beginAtZero: true } }
         }
     });
+}
+
+// --- Bank Account Selector for Transfer ---
+function populateAccountSelector() {
+    // Try to inject a bank account selector before the amount field in the transfer form
+    const amountInput = document.getElementById('amount');
+    if (!amountInput || !userBankAccounts.length) return;
+    
+    // Don't add twice
+    if (document.getElementById('from-account-select')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.style.marginBottom = '16px';
+    wrapper.innerHTML = `
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#718096;">Forrás bankszámla</label>
+        <select id="from-account-select" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f7fafc;font-size:14px;">
+            ${userBankAccounts.map(acc => `<option value="${acc._id}">${CURRENCY_FLAGS[acc.currency] || ''} ${acc.currency} — ${formatCurrency(acc.balance, acc.currency)} (${acc.bankName || 'Logi Bank'})</option>`).join('')}
+        </select>
+    `;
+
+    amountInput.parentElement.insertBefore(wrapper, amountInput.parentElement.firstChild);
 }

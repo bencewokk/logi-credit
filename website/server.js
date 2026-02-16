@@ -62,15 +62,105 @@ async function resolveCurrentDbUser(session) {
 
 // Transaction Schema (user-to-user transfers)
 const transactionSchema = new mongoose.Schema({
-  fromUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  toUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  amount: { type: Number, required: true, min: 1 },
-  currency: { type: String, default: 'HUF' },
-  note: { type: String, trim: true, maxlength: 140 },
-  createdAt: { type: Date, default: Date.now }
+  fromUser:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  toUser:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  fromAccount:    { type: mongoose.Schema.Types.ObjectId, ref: 'BankAccount' },
+  toAccount:      { type: mongoose.Schema.Types.ObjectId, ref: 'BankAccount' },
+  amount:         { type: Number, required: true, min: 0.01 },
+  originalAmount: { type: Number },          // amount in sender's currency
+  currency:       { type: String, default: 'HUF' },
+  fromCurrency:   { type: String },
+  toCurrency:     { type: String },
+  exchangeRate:   { type: Number },
+  type:           { type: String, default: 'transfer', enum: ['transfer', 'exchange'] },
+  note:           { type: String, trim: true, maxlength: 140 },
+  createdAt:      { type: Date, default: Date.now }
 });
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
+
+// Bank Account Schema (multi-currency accounts per user)
+const SUPPORTED_CURRENCIES = [
+  'HUF','EUR','USD','GBP','CHF','CZK','PLN','RON','SEK','NOK','DKK',
+  'JPY','CNY','AUD','CAD','NZD','TRY','BRL','INR','KRW','MXN','ZAR',
+  'SGD','HKD','THB','ILS','AED','SAR','RUB','BGN','HRK','ISK'
+];
+
+const bankAccountSchema = new mongoose.Schema({
+  user:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  accountNumber: { type: String, required: true, trim: true },
+  bankName:      { type: String, trim: true, default: 'Logi Bank' },
+  currency:      { type: String, required: true, enum: SUPPORTED_CURRENCIES, default: 'HUF' },
+  balance:       { type: Number, default: 0 },
+  isDefault:     { type: Boolean, default: false },
+  createdAt:     { type: Date, default: Date.now }
+});
+
+bankAccountSchema.index({ user: 1, currency: 1 });
+bankAccountSchema.index({ accountNumber: 1 }, { unique: true });
+
+const BankAccount = mongoose.model('BankAccount', bankAccountSchema);
+
+// --- Exchange Rate Service (ExchangeRate-API, 15-min cache) ---
+const exchangeRateCache = new Map(); // key = baseCurrency, value = { rates, fetchedAt }
+const EXCHANGE_RATE_TTL = 15 * 60 * 1000; // 15 minutes
+
+function generateAccountNumber() {
+  // Generate IBAN-like number: HU + 2 check + 24 digits
+  const digits = () => Math.floor(Math.random() * 10);
+  let num = 'HU';
+  for (let i = 0; i < 26; i++) num += digits();
+  return num;
+}
+
+async function fetchExchangeRates(baseCurrency = 'USD') {
+  const cached = exchangeRateCache.get(baseCurrency);
+  if (cached && (Date.now() - cached.fetchedAt) < EXCHANGE_RATE_TTL) {
+    return cached.rates;
+  }
+
+  try {
+    const resp = await axios.get(`https://open.er-api.com/v6/latest/${baseCurrency}`);
+    if (resp.data && resp.data.result === 'success') {
+      const rates = resp.data.rates;
+      exchangeRateCache.set(baseCurrency, { rates, fetchedAt: Date.now() });
+      return rates;
+    }
+    throw new Error('API returned non-success');
+  } catch (err) {
+    console.error(`❌ Exchange rate fetch error (${baseCurrency}):`, err.message);
+    // Return stale cache if available
+    if (cached) return cached.rates;
+    return null;
+  }
+}
+
+async function convertAmount(amount, fromCurrency, toCurrency) {
+  if (fromCurrency === toCurrency) return { converted: amount, rate: 1 };
+  const rates = await fetchExchangeRates(fromCurrency);
+  if (!rates || !rates[toCurrency]) {
+    throw new Error(`Árfolyam nem elérhető: ${fromCurrency} → ${toCurrency}`);
+  }
+  const rate = rates[toCurrency];
+  return { converted: Math.round(amount * rate * 100) / 100, rate };
+}
+
+async function ensureDefaultBankAccount(userId, startingBalance = 100000) {
+  const existing = await BankAccount.findOne({ user: userId });
+  if (!existing) {
+    const account = new BankAccount({
+      user: userId,
+      accountNumber: generateAccountNumber(),
+      bankName: 'Logi Bank',
+      currency: 'HUF',
+      balance: startingBalance,
+      isDefault: true
+    });
+    await account.save();
+    return account;
+  }
+  return existing;
+}
 
 // Google OAuth configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
@@ -187,6 +277,9 @@ app.post('/api/register', async (req, res) => {
     });
     
     await newUser.save();
+
+    // Create default HUF bank account for new user
+    await ensureDefaultBankAccount(newUser._id, 100000);
     
     console.log('✅ User registered successfully:', username);
     
@@ -434,6 +527,9 @@ app.get('/auth/google/callback', async (req, res) => {
         dbUser.lastLogin = new Date();
       }
       await dbUser.save();
+
+      // Ensure default bank account exists for Google OAuth user
+      await ensureDefaultBankAccount(dbUser._id, 100000);
     }
 
     // Create session
@@ -523,6 +619,10 @@ app.get('/api/user/me', requireAuth, async (req, res) => {
       });
     }
 
+    // Ensure bank accounts exist (migration for legacy users)
+    await ensureDefaultBankAccount(dbUser._id, dbUser.balance || 100000);
+    const bankAccounts = await BankAccount.find({ user: dbUser._id }).sort({ isDefault: -1, createdAt: 1 });
+
     return res.json({
       success: true,
       user: {
@@ -533,6 +633,7 @@ app.get('/api/user/me', requireAuth, async (req, res) => {
         picture: dbUser.picture,
         role: dbUser.role,
         balance: dbUser.balance || 0,
+        bankAccounts: bankAccounts,
         createdAt: dbUser.createdAt
       }
     });
@@ -576,9 +677,9 @@ app.get('/api/users', requireAuth, async (req, res) => {
   }
 });
 
-// Create a transaction (transfer) between users
+// Create a transaction (transfer) between users — multi-currency support
 app.post('/api/transactions/transfer', requireAuth, async (req, res) => {
-  const { to, amount, note } = req.body || {};
+  const { to, amount, note, fromAccountId } = req.body || {};
 
   if (!isDbConnected()) {
     return res.status(503).json({
@@ -623,38 +724,97 @@ app.post('/api/transactions/transfer', requireAuth, async (req, res) => {
       });
     }
 
-    const transferAmount = Math.round(numericAmount);
-    const senderBalance = sender.balance || 0;
+    // Resolve sender's bank account
+    let senderAccount;
+    if (fromAccountId) {
+      senderAccount = await BankAccount.findOne({ _id: fromAccountId, user: sender._id });
+    }
+    if (!senderAccount) {
+      senderAccount = await BankAccount.findOne({ user: sender._id, isDefault: true });
+    }
+    if (!senderAccount) {
+      // Migration: create default account from legacy balance
+      senderAccount = await ensureDefaultBankAccount(sender._id, sender.balance || 100000);
+    }
 
-    // Check if sender has enough balance
-    if (senderBalance < transferAmount) {
+    // Resolve recipient's bank account (prefer same currency, else default)
+    let recipientAccount = await BankAccount.findOne({ user: recipient._id, currency: senderAccount.currency });
+    if (!recipientAccount) {
+      recipientAccount = await BankAccount.findOne({ user: recipient._id, isDefault: true });
+    }
+    if (!recipientAccount) {
+      recipientAccount = await ensureDefaultBankAccount(recipient._id, recipient.balance || 100000);
+    }
+
+    const transferAmount = Math.round(numericAmount * 100) / 100;
+
+    // Check sender has enough balance
+    if (senderAccount.balance < transferAmount) {
       return res.status(400).json({
         success: false,
-        message: `Nincs elég egyenleged. Jelenlegi egyenleg: ${senderBalance.toLocaleString('hu-HU')} HUF`
+        message: `Nincs elég egyenleged. Egyenleg: ${senderAccount.balance.toLocaleString('hu-HU')} ${senderAccount.currency}`
       });
     }
 
-    // Update balances
-    sender.balance = senderBalance - transferAmount;
-    const recipientBalance = recipient.balance || 0;
-    recipient.balance = recipientBalance + transferAmount;
+    // Convert if different currencies
+    let receivedAmount = transferAmount;
+    let exchangeRate = 1;
+    const fromCurrency = senderAccount.currency;
+    const toCurrency = recipientAccount.currency;
 
+    if (fromCurrency !== toCurrency) {
+      const conversion = await convertAmount(transferAmount, fromCurrency, toCurrency);
+      receivedAmount = conversion.converted;
+      exchangeRate = conversion.rate;
+    }
+
+    // Update bank account balances
+    senderAccount.balance -= transferAmount;
+    recipientAccount.balance += receivedAmount;
+
+    await senderAccount.save();
+    await recipientAccount.save();
+
+    // Also sync legacy user.balance (sum of all accounts in HUF equivalent)
+    const senderAccounts = await BankAccount.find({ user: sender._id });
+    let senderTotalHuf = 0;
+    for (const acc of senderAccounts) {
+      if (acc.currency === 'HUF') {
+        senderTotalHuf += acc.balance;
+      } else {
+        try {
+          const conv = await convertAmount(acc.balance, acc.currency, 'HUF');
+          senderTotalHuf += conv.converted;
+        } catch { senderTotalHuf += 0; }
+      }
+    }
+    sender.balance = Math.round(senderTotalHuf);
     await sender.save();
-    await recipient.save();
 
     const tx = await Transaction.create({
       fromUser: sender._id,
       toUser: recipient._id,
-      amount: transferAmount,
-      currency: 'HUF',
+      fromAccount: senderAccount._id,
+      toAccount: recipientAccount._id,
+      amount: receivedAmount,
+      originalAmount: transferAmount,
+      currency: toCurrency,
+      fromCurrency,
+      toCurrency,
+      exchangeRate,
+      type: 'transfer',
       note: typeof note === 'string' ? note.trim().slice(0, 140) : undefined
     });
 
     return res.status(201).json({
       success: true,
       transactionId: tx._id,
-      message: 'Tranzakció sikeres!',
-      newBalance: sender.balance
+      message: fromCurrency !== toCurrency
+        ? `Tranzakció sikeres! ${transferAmount} ${fromCurrency} → ${receivedAmount.toLocaleString('hu-HU')} ${toCurrency} (árfolyam: ${exchangeRate.toFixed(4)})`
+        : 'Tranzakció sikeres!',
+      newBalance: senderAccount.balance,
+      newBalanceCurrency: senderAccount.currency,
+      exchangeRate: fromCurrency !== toCurrency ? exchangeRate : undefined
     });
   } catch (error) {
     console.error('❌ Transfer error:', error);
@@ -704,6 +864,289 @@ app.get('/api/transactions', requireAuth, async (req, res) => {
       success: false,
       message: 'Szerverhiba történt'
     });
+  }
+});
+
+// =============================================
+// BANK ACCOUNT ENDPOINTS
+// =============================================
+
+// List current user's bank accounts
+app.get('/api/bank-accounts', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({ success: false, code: 'DB_UNAVAILABLE', message: 'Az adatbázis jelenleg nem elérhető.' });
+  }
+
+  try {
+    const currentUser = await resolveCurrentDbUser(req.user);
+    if (!currentUser) {
+      return res.status(403).json({ success: false, message: 'Regisztrált felhasználó szükséges.' });
+    }
+
+    // Ensure at least one account exists (migration for existing users)
+    await ensureDefaultBankAccount(currentUser._id, currentUser.balance || 100000);
+
+    const accounts = await BankAccount.find({ user: currentUser._id }).sort({ isDefault: -1, createdAt: 1 });
+    return res.json({ success: true, accounts });
+  } catch (error) {
+    console.error('❌ Bank accounts list error:', error);
+    return res.status(500).json({ success: false, message: 'Szerverhiba történt' });
+  }
+});
+
+// Add a new bank account
+app.post('/api/bank-accounts', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({ success: false, code: 'DB_UNAVAILABLE', message: 'Az adatbázis jelenleg nem elérhető.' });
+  }
+
+  const { currency, bankName, accountNumber } = req.body || {};
+  const cur = String(currency || 'HUF').toUpperCase();
+
+  if (!SUPPORTED_CURRENCIES.includes(cur)) {
+    return res.status(400).json({ success: false, message: `Nem támogatott valuta: ${cur}` });
+  }
+
+  try {
+    const currentUser = await resolveCurrentDbUser(req.user);
+    if (!currentUser) {
+      return res.status(403).json({ success: false, message: 'Regisztrált felhasználó szükséges.' });
+    }
+
+    // Max 10 accounts per user
+    const count = await BankAccount.countDocuments({ user: currentUser._id });
+    if (count >= 10) {
+      return res.status(400).json({ success: false, message: 'Maximum 10 bankszámla hozható létre.' });
+    }
+
+    const isFirst = count === 0;
+    const accNum = accountNumber ? String(accountNumber).trim() : generateAccountNumber();
+
+    const account = new BankAccount({
+      user: currentUser._id,
+      accountNumber: accNum,
+      bankName: bankName ? String(bankName).trim() : 'Logi Bank',
+      currency: cur,
+      balance: 0,
+      isDefault: isFirst
+    });
+
+    await account.save();
+    return res.status(201).json({ success: true, account, message: 'Bankszámla sikeresen létrehozva!' });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(400).json({ success: false, message: 'Ez a számlaszám már létezik.' });
+    }
+    console.error('❌ Bank account create error:', error);
+    return res.status(500).json({ success: false, message: 'Szerverhiba történt' });
+  }
+});
+
+// Update a bank account (set default, rename)
+app.put('/api/bank-accounts/:id', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({ success: false, code: 'DB_UNAVAILABLE', message: 'Az adatbázis jelenleg nem elérhető.' });
+  }
+
+  try {
+    const currentUser = await resolveCurrentDbUser(req.user);
+    if (!currentUser) {
+      return res.status(403).json({ success: false, message: 'Regisztrált felhasználó szükséges.' });
+    }
+
+    const account = await BankAccount.findOne({ _id: req.params.id, user: currentUser._id });
+    if (!account) {
+      return res.status(404).json({ success: false, message: 'Bankszámla nem található.' });
+    }
+
+    const { bankName, isDefault } = req.body || {};
+    if (bankName !== undefined) account.bankName = String(bankName).trim();
+    if (isDefault === true) {
+      // Unset other defaults
+      await BankAccount.updateMany({ user: currentUser._id }, { isDefault: false });
+      account.isDefault = true;
+    }
+
+    await account.save();
+    return res.json({ success: true, account });
+  } catch (error) {
+    console.error('❌ Bank account update error:', error);
+    return res.status(500).json({ success: false, message: 'Szerverhiba történt' });
+  }
+});
+
+// Delete a bank account (only if balance is 0 and not the only account)
+app.delete('/api/bank-accounts/:id', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({ success: false, code: 'DB_UNAVAILABLE', message: 'Az adatbázis jelenleg nem elérhető.' });
+  }
+
+  try {
+    const currentUser = await resolveCurrentDbUser(req.user);
+    if (!currentUser) {
+      return res.status(403).json({ success: false, message: 'Regisztrált felhasználó szükséges.' });
+    }
+
+    const account = await BankAccount.findOne({ _id: req.params.id, user: currentUser._id });
+    if (!account) {
+      return res.status(404).json({ success: false, message: 'Bankszámla nem található.' });
+    }
+
+    if (account.balance > 0) {
+      return res.status(400).json({ success: false, message: 'Nem törölhető: az egyenleg nem nulla!' });
+    }
+
+    const count = await BankAccount.countDocuments({ user: currentUser._id });
+    if (count <= 1) {
+      return res.status(400).json({ success: false, message: 'Az utolsó bankszámla nem törölhető.' });
+    }
+
+    const wasDefault = account.isDefault;
+    await BankAccount.deleteOne({ _id: account._id });
+
+    // If deleted was default, make another one default
+    if (wasDefault) {
+      const other = await BankAccount.findOne({ user: currentUser._id });
+      if (other) {
+        other.isDefault = true;
+        await other.save();
+      }
+    }
+
+    return res.json({ success: true, message: 'Bankszámla törölve.' });
+  } catch (error) {
+    console.error('❌ Bank account delete error:', error);
+    return res.status(500).json({ success: false, message: 'Szerverhiba történt' });
+  }
+});
+
+// =============================================
+// EXCHANGE RATE ENDPOINTS
+// =============================================
+
+// Get current exchange rates
+app.get('/api/exchange-rates', requireAuth, async (req, res) => {
+  const base = String(req.query.base || 'HUF').toUpperCase();
+  if (!SUPPORTED_CURRENCIES.includes(base)) {
+    return res.status(400).json({ success: false, message: `Nem támogatott valuta: ${base}` });
+  }
+
+  try {
+    const rates = await fetchExchangeRates(base);
+    if (!rates) {
+      return res.status(503).json({ success: false, message: 'Árfolyam adatok nem elérhetők. Próbáld újra később.' });
+    }
+
+    // Filter to only supported currencies
+    const filteredRates = {};
+    SUPPORTED_CURRENCIES.forEach(c => {
+      if (rates[c] !== undefined) filteredRates[c] = rates[c];
+    });
+
+    return res.json({
+      success: true,
+      base,
+      rates: filteredRates,
+      supportedCurrencies: SUPPORTED_CURRENCIES
+    });
+  } catch (error) {
+    console.error('❌ Exchange rates error:', error);
+    return res.status(500).json({ success: false, message: 'Szerverhiba történt' });
+  }
+});
+
+// Get supported currencies list
+app.get('/api/currencies', requireAuth, (req, res) => {
+  return res.json({ success: true, currencies: SUPPORTED_CURRENCIES });
+});
+
+// Convert between own bank accounts
+app.post('/api/exchange/convert', requireAuth, async (req, res) => {
+  if (!isDbConnected()) {
+    return res.status(503).json({ success: false, code: 'DB_UNAVAILABLE', message: 'Az adatbázis jelenleg nem elérhető.' });
+  }
+
+  const { fromAccountId, toAccountId, amount } = req.body || {};
+  const numericAmount = Number(amount);
+
+  if (!fromAccountId || !toAccountId || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+    return res.status(400).json({ success: false, message: 'Hiányzó vagy hibás adatok (fromAccountId, toAccountId, amount).' });
+  }
+
+  try {
+    const currentUser = await resolveCurrentDbUser(req.user);
+    if (!currentUser) {
+      return res.status(403).json({ success: false, message: 'Regisztrált felhasználó szükséges.' });
+    }
+
+    const fromAccount = await BankAccount.findOne({ _id: fromAccountId, user: currentUser._id });
+    const toAccount = await BankAccount.findOne({ _id: toAccountId, user: currentUser._id });
+
+    if (!fromAccount || !toAccount) {
+      return res.status(404).json({ success: false, message: 'Bankszámla nem található.' });
+    }
+
+    if (String(fromAccount._id) === String(toAccount._id)) {
+      return res.status(400).json({ success: false, message: 'A forrás és cél számla nem lehet ugyanaz.' });
+    }
+
+    const transferAmount = Math.round(numericAmount * 100) / 100;
+
+    if (fromAccount.balance < transferAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Nincs elég egyenleg. Elérhető: ${fromAccount.balance.toLocaleString('hu-HU')} ${fromAccount.currency}`
+      });
+    }
+
+    const { converted, rate } = await convertAmount(transferAmount, fromAccount.currency, toAccount.currency);
+
+    fromAccount.balance -= transferAmount;
+    toAccount.balance += converted;
+
+    await fromAccount.save();
+    await toAccount.save();
+
+    // Log as exchange transaction
+    const tx = await Transaction.create({
+      fromUser: currentUser._id,
+      toUser: currentUser._id,
+      fromAccount: fromAccount._id,
+      toAccount: toAccount._id,
+      amount: converted,
+      originalAmount: transferAmount,
+      currency: toAccount.currency,
+      fromCurrency: fromAccount.currency,
+      toCurrency: toAccount.currency,
+      exchangeRate: rate,
+      type: 'exchange',
+      note: `Valutaváltás: ${transferAmount} ${fromAccount.currency} → ${converted.toLocaleString('hu-HU')} ${toAccount.currency}`
+    });
+
+    // Sync legacy user.balance
+    const allAccounts = await BankAccount.find({ user: currentUser._id });
+    let totalHuf = 0;
+    for (const acc of allAccounts) {
+      if (acc.currency === 'HUF') {
+        totalHuf += acc.balance;
+      } else {
+        try { const c = await convertAmount(acc.balance, acc.currency, 'HUF'); totalHuf += c.converted; } catch { /* skip */ }
+      }
+    }
+    currentUser.balance = Math.round(totalHuf);
+    await currentUser.save();
+
+    return res.json({
+      success: true,
+      message: `Sikeresen váltottál ${transferAmount} ${fromAccount.currency} → ${converted.toLocaleString('hu-HU')} ${toAccount.currency}`,
+      exchangeRate: rate,
+      fromBalance: fromAccount.balance,
+      toBalance: toAccount.balance,
+      transactionId: tx._id
+    });
+  } catch (error) {
+    console.error('❌ Exchange convert error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Szerverhiba történt' });
   }
 });
 

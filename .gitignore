@@ -13,3 +13,4 @@ website/version.json
 # OS
 .DS_Store
 Thumbs.db
+.VSCodeCounter
